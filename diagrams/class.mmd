@@ -1,0 +1,229 @@
+%% Smart Traffic Management System - Class Diagram (Mermaid)
+%% UML Class Diagram with attributes and operations
+
+classDiagram
+  direction TB
+
+  class User {
+    -userId: UUID
+    -name: string
+    -email: string
+    -password: string
+    -role: Role
+    -createdAt: Instant
+    -lastLogin: Instant
+    -isActive: boolean
+    +register(name: string, email: string, password: string): User
+    +login(email: string, password: string): boolean
+    +updateProfile(name: string, email: string): void
+    +changePassword(oldPassword: string, newPassword: string): boolean
+    +deactivate(): void
+    +getUserReports(): List~IncidentReport~
+  }
+
+  class IncidentReport {
+    -reportId: UUID
+    -reportedBy: UUID
+    -type: IncidentType
+    -description: string
+    -latitude: float
+    -longitude: float
+    -status: ReportStatus
+    -createdAt: Instant
+    -resolvedAt: Instant
+    -verifiedBy: UUID
+    -priority: int
+    +createReport(userId: UUID, type: IncidentType, location: GeoPoint, description: string): IncidentReport
+    +updateStatus(newStatus: ReportStatus): void
+    +assignToOperator(operatorId: UUID): void
+    +resolve(operatorId: UUID): void
+    +getLocation(): GeoPoint
+    +isExpired(): boolean
+    +calculatePriority(): int
+  }
+
+  class RouteRequest {
+    -requestId: UUID
+    -userId: UUID
+    -originLat: float
+    -originLng: float
+    -destLat: float
+    -destLng: float
+    -createdAt: Instant
+    -preferences: RoutePreferences
+    +createRequest(userId: UUID, origin: GeoPoint, destination: GeoPoint): RouteRequest
+    +setPreferences(preferences: RoutePreferences): void
+    +getOrigin(): GeoPoint
+    +getDestination(): GeoPoint
+    +isValid(): boolean
+  }
+
+  class RouteSuggestion {
+    -suggestionId: UUID
+    -requestId: UUID
+    -durationMin: float
+    -distanceKm: float
+    -congestionLevel: CongestionLevel
+    -polyline: string
+    -generatedAt: Instant
+    -routeSteps: List~RouteStep~
+    +generateSuggestion(request: RouteRequest, trafficData: TrafficSnapshot): RouteSuggestion
+    +getRouteSteps(): List~RouteStep~
+    +getEstimatedArrival(): Instant
+    +getTrafficDelay(): float
+    +isOptimal(): boolean
+  }
+
+  class TrafficSnapshot {
+    -snapshotId: UUID
+    -areaBounds: GeoBounds
+    -avgSpeedKph: float
+    -congestionIndex: float
+    -source: DataSource
+    -capturedAt: Instant
+    -trafficLayers: Map~string, TrafficLayer~
+    +captureTrafficData(bounds: GeoBounds, source: DataSource): TrafficSnapshot
+    +getCongestionLevel(): CongestionLevel
+    +getAverageSpeed(): float
+    +getTrafficDensity(): float
+    +isStale(): boolean
+    +updateTrafficLayer(layerName: string, data: TrafficLayer): void
+  }
+
+  class DashboardAlert {
+    -alertId: UUID
+    -title: string
+    -message: string
+    -severity: Severity
+    -createdAt: Instant
+    -expiresAt: Instant
+    -targetUsers: List~UUID~
+    -isRead: boolean
+    +createAlert(title: string, message: string, severity: Severity): DashboardAlert
+    +setExpiration(expiresAt: Instant): void
+    +addTargetUser(userId: UUID): void
+    +markAsRead(userId: UUID): void
+    +isExpired(): boolean
+    +getRemainingTime(): Duration
+  }
+
+  class GeoPoint {
+    -latitude: float
+    -longitude: float
+    +GeoPoint(lat: float, lng: float)
+    +getLatitude(): float
+    +getLongitude(): float
+    +distanceTo(other: GeoPoint): float
+    +toString(): string
+  }
+
+  class GeoBounds {
+    -northEast: GeoPoint
+    -southWest: GeoPoint
+    +GeoBounds(northEast: GeoPoint, southWest: GeoPoint)
+    +contains(point: GeoPoint): boolean
+    +getCenter(): GeoPoint
+    +getArea(): float
+  }
+
+  class RoutePreferences {
+    -avoidTolls: boolean
+    -avoidHighways: boolean
+    -preferPublicTransit: boolean
+    -maxWalkingDistance: float
+    +setAvoidTolls(avoid: boolean): void
+    +setAvoidHighways(avoid: boolean): void
+    +setPublicTransitPreference(prefer: boolean): void
+    +setMaxWalkingDistance(distance: float): void
+  }
+
+  class RouteStep {
+    -stepId: UUID
+    -instruction: string
+    -distance: float
+    -duration: float
+    -startLocation: GeoPoint
+    -endLocation: GeoPoint
+    +getInstruction(): string
+    +getDistance(): float
+    +getDuration(): float
+    +getStartLocation(): GeoPoint
+    +getEndLocation(): GeoPoint
+  }
+
+  class TrafficLayer {
+    -layerName: string
+    -data: Map~string, Object~
+    -lastUpdated: Instant
+    +updateData(key: string, value: Object): void
+    +getData(key: string): Object
+    +getLastUpdated(): Instant
+    +isValid(): boolean
+  }
+
+  %% Relationships
+  User "1" --> "many" IncidentReport : creates
+  User "1" --> "many" RouteRequest : makes
+  RouteRequest "1" --> "many" RouteSuggestion : generates
+  TrafficSnapshot "1" --> "many" RouteSuggestion : influences
+  IncidentReport "many" --> "1" TrafficSnapshot : affects
+  DashboardAlert "*" ..> IncidentReport : references
+  RouteRequest "1" --> "1" GeoPoint : origin
+  RouteRequest "1" --> "1" GeoPoint : destination
+  RouteRequest "1" --> "1" RoutePreferences : has
+  RouteSuggestion "1" --> "many" RouteStep : contains
+  TrafficSnapshot "1" --> "1" GeoBounds : covers
+  TrafficSnapshot "1" --> "many" TrafficLayer : includes
+
+  %% Enums
+  class Role {
+    <<enumeration>>
+    COMMUTER
+    OPERATOR
+    ADMIN
+  }
+  
+  class IncidentType {
+    <<enumeration>>
+    ACCIDENT
+    ROADBLOCK
+    CLOSURE
+    DIVERSION
+    CONSTRUCTION
+    WEATHER
+  }
+  
+  class ReportStatus {
+    <<enumeration>>
+    OPEN
+    IN_REVIEW
+    RESOLVED
+    REJECTED
+    ESCALATED
+  }
+  
+  class CongestionLevel {
+    <<enumeration>>
+    LOW
+    MEDIUM
+    HIGH
+    SEVERE
+  }
+  
+  class DataSource {
+    <<enumeration>>
+    GOOGLE_MAPS
+    USER_REPORT
+    AGGREGATED
+    SENSOR_DATA
+  }
+  
+  class Severity {
+    <<enumeration>>
+    INFO
+    WARNING
+    CRITICAL
+    EMERGENCY
+  }
+
+

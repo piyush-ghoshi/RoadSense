@@ -1,0 +1,15 @@
+%% Smart Traffic Management System - State Diagram (Mermaid)
+%% Incident lifecycle
+
+stateDiagram-v2
+  [*] --> Open
+  Open: New Incident Reported
+  Open --> InReview: Operator acknowledges
+  Open --> Rejected: Invalid/Spam
+  InReview --> Resolved: Issue cleared / verified fixed
+  InReview --> Escalated: Severe or needs authority action
+  Escalated --> Resolved: Action completed
+  Resolved --> [*]
+  Rejected --> [*]
+
+

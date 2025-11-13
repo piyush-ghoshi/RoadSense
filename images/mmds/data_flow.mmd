@@ -1,0 +1,47 @@
+%% Smart Traffic Management System - Data Flow Diagram (Mermaid)
+%% Level-1 style DFD (context + major processes)
+
+flowchart LR
+  %% External Entities
+  Commuter([Commuter]):::ext
+  Operator([Traffic Operator]):::ext
+  GMaps[[Google Maps API]]:::ext
+
+  %% Data Stores
+  DB[(Reports DB)]:::store
+  Logs[(Analytics/Logs)]:::store
+
+  %% Processes
+  subgraph Backend[Backend Server]
+    P1((P1: Traffic View))
+    P2((P2: Routing))
+    P3((P3: Incident Reporting))
+    P4((P4: Dashboard/Moderation))
+  end
+
+  %% Flows
+  Commuter -- view area --> P1
+  P1 -- traffic layer --> GMaps
+  GMaps -- traffic tiles+speed --> P1
+
+  Commuter -- origin/destination --> P2
+  P2 -- directions query --> GMaps
+  GMaps -- routes+ETAs --> P2
+  P2 -- best route + alternatives --> Commuter
+  P2 -- log metrics --> Logs
+
+  Commuter -- report(payload) --> P3
+  P3 -- validate + reverse geocode --> GMaps
+  GMaps -- address/meta --> P3
+  P3 -- save report --> DB
+  P3 -- confirmation --> Commuter
+
+  Operator -- dashboard filters --> P4
+  P4 -- fetch reports --> DB
+  P4 -- update status --> DB
+  P4 -- aggregated stats --> Operator
+
+  classDef ext fill:#eef6ff,stroke:#3b82f6
+  classDef store fill:#fff7ed,stroke:#f97316
+
+

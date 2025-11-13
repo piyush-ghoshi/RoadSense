@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  name      String?
+  role      String   @default("user") // "user" or "authority"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports TrafficReport[]
+}
+
+model TrafficReport {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type        String   // "accident", "roadblock", "diversion", "congestion", "other"
+  severity    String   @default("medium") // "low", "medium", "high", "critical"
+  location    String   // Address or location description
+  latitude    Float?
+  longitude   Float?
+  description String?
+  status      String   @default("pending") // "pending", "verified", "resolved", "false"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CongestionSnapshot {
+  id          String   @id @default(uuid())
+  location    String
+  latitude    Float
+  longitude   Float
+  congestionLevel String // "light", "moderate", "heavy", "severe"
+  trafficSpeed Float?   // Average speed in km/h
+  timestamp   DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([latitude, longitude])
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  type        String   // "traffic", "incident", "system"
+  title       String
+  message     String
+  severity    String   @default("info") // "info", "warning", "critical"
+  location    String?
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  @@index([isActive])
+  @@index([createdAt])
+}

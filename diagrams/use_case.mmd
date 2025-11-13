@@ -1,0 +1,30 @@
+%% Smart Traffic Management System - Use Case Diagram (Mermaid)
+%% Render online with Mermaid Live Editor
+
+%%{init: {'theme': 'default'}}%%
+flowchart TD
+  %% Actors
+  Commuter([Commuter]):::actor
+  Operator([Traffic Operator]):::actor
+  GMaps([Google Maps API]):::ext
+
+  subgraph App[Smart Traffic Web App]
+    UC1[[View Live Traffic]]
+    UC2[[Get Alternate Routes]]
+    UC3[[Report Incident]]
+    UC4[[Manage Reports]]
+    UC5[[View Dashboard]]
+  end
+
+  Commuter --> UC1
+  Commuter --> UC2
+  Commuter --> UC3
+  Operator --> UC4
+  Operator --> UC5
+  GMaps -. provides data .- UC1
+  GMaps -. provides data .- UC2
+
+  classDef actor fill:#fff,stroke:#111,stroke-width:1px
+  classDef ext fill:#eef6ff,stroke:#3b82f6
+
+

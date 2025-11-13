@@ -1,0 +1,97 @@
+.traffic-map {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.traffic-map h1 {
+  margin-bottom: 2rem;
+  color: #1a1a2e;
+}
+
+.map-placeholder {
+  background: white;
+  border-radius: 8px;
+  padding: 3rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.map-info h2 {
+  margin-top: 0;
+  color: #1a1a2e;
+}
+
+.map-info ul {
+  text-align: left;
+  max-width: 400px;
+  margin: 1rem auto;
+}
+
+.traffic-data {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.traffic-data h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1a1a2e;
+}
+
+.snapshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.snapshot-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  transition: box-shadow 0.3s;
+}
+
+.snapshot-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.congestion-indicator {
+  width: 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.snapshot-info {
+  flex: 1;
+}
+
+.snapshot-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #1a1a2e;
+}
+
+.snapshot-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.congestion-level strong {
+  text-transform: capitalize;
+  color: #1a1a2e;
+}
+
+.traffic-speed {
+  font-weight: 500;
+}
+
+.timestamp {
+  font-size: 0.8rem !important;
+  color: #999 !important;
+}

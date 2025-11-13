@@ -1,0 +1,16 @@
+%% Smart Traffic Management System - Incident Report Sequence Diagram
+
+sequenceDiagram
+  participant U as User (Browser)
+  participant API as Backend REST
+  participant REP as Reports Service
+  participant GM as Google Maps API
+  participant DB as DB
+
+  U->>API: Submit report(type, location, note)
+  API->>REP: Validate + normalize payload
+  REP->>GM: Reverse geocode (optional)
+  GM-->>REP: Address metadata
+  REP->>DB: Save IncidentReport(status=Open)
+  REP-->>API: ReportId, status
+  API-->>U: Confirmation + display on map

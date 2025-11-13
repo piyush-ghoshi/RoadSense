@@ -1,0 +1,16 @@
+%% Smart Traffic Management System - Route Request Sequence Diagram
+
+sequenceDiagram
+  participant U as User (Browser)
+  participant API as Backend REST
+  participant RS as Routing Service
+  participant GM as Google Maps API
+  participant DB as DB
+
+  U->>API: Request route(origin, destination)
+  API->>RS: Build routing query with constraints
+  RS->>GM: Directions API + Traffic layer
+  GM-->>RS: Routes with durations, traffic data
+  RS->>DB: Log query/metrics
+  RS-->>API: Best route + alternatives
+  API-->>U: RouteSuggestion DTOs

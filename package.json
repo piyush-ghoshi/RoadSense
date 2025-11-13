@@ -1,0 +1,21 @@
+{
+  "name": "stms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Smart Traffic Management System monorepo",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev": "npm run dev:frontend",
+    "lint": "echo \"No root lint configured\"",
+    "test": "echo \"No root tests\""
+  },
+  "keywords": [
+    "traffic",
+    "react",
+    "express",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "MIT"
+}
