@@ -1,0 +1,48 @@
+%% Smart Traffic Management System - Activity Diagram (Mermaid)
+
+flowchart TD
+  start([Start])
+  choice{User action?}
+
+  subgraph Browse[Browse Traffic]
+    B1[Open Web App]
+    B2[Select Area / Use Current Location]
+    B3[Load Google Traffic Layer]
+    B4{Need Route?}
+  end
+
+  subgraph Route[Get Alternate Route]
+    R1[Enter Origin & Destination]
+    R2[Submit Route Request]
+    R3[Fetch Directions + Traffic]
+    R4[Evaluate Alternatives]
+    R5[Display Best Route + Options]
+  end
+
+  subgraph Report[Report Incident]
+    P1[Open Report Form]
+    P2[Fill Type, Location, Description]
+    P3[Validate + Reverse Geocode]
+    P4[Save to DB]
+    P5[Show Confirmation]
+  end
+
+  subgraph Moderate[Operator Dashboard]
+    O1[Login]
+    O2[Filter Reports/Areas]
+    O3[Review Incoming Reports]
+    O4[Update Status: Open/InReview/Resolved]
+    O5[View KPIs/Trends]
+  end
+
+  start --> B1 --> B2 --> B3 --> B4
+  B4 -- Yes --> R1 --> R2 --> R3 --> R4 --> R5
+  B4 -- No --> choice
+
+  choice -- Report Incident --> P1 --> P2 --> P3 --> P4 --> P5 --> choice
+  choice -- Browse/Route Again --> B1
+  choice -- Operator Dashboard --> O1 --> O2 --> O3 --> O4 --> O5 --> choice
+
+  endc([End])
+
+
