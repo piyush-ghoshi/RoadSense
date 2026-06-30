@@ -13,6 +13,7 @@ interface VerificationData {
 export default function AuthorityLogin() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'initial' | 'verification' | 'verified'>('initial');
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [formData, setFormData] = useState<VerificationData>({
     badgeNumber: '',
     email: '',
@@ -22,7 +23,6 @@ export default function AuthorityLogin() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sentCode, setSentCode] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -33,6 +33,7 @@ export default function AuthorityLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setDevOtp(null);
 
     // Validate inputs
     if (!formData.badgeNumber || !formData.email || !formData.post || !formData.department) {
@@ -50,12 +51,9 @@ export default function AuthorityLogin() {
     }
 
     try {
-      // Call backend API to send OTP
       const response = await fetch('http://localhost:3000/api/auth/send-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: formData.email,
           badgeNumber: formData.badgeNumber,
@@ -70,18 +68,9 @@ export default function AuthorityLogin() {
         throw new Error(data.message || 'Failed to send verification code');
       }
 
-      // If development mode, show the OTP
+      // Show OTP inline for dev mode (no email configured)
       if (data.developmentOTP) {
-        alert(`Development Mode: Your verification code is: ${data.developmentOTP}\n\nNote: In production, this would be sent to your email.`);
-        setSentCode(data.developmentOTP);
-      }
-
-      // If preview URL available (Ethereal), show it
-      if (data.previewUrl) {
-        console.log('📧 Email Preview:', data.previewUrl);
-        alert(`Email sent! Check console for preview link.\n\nPreview: ${data.previewUrl}`);
-      } else {
-        alert(`Verification code sent to ${formData.email}\n\nPlease check your email inbox (and spam folder).`);
+        setDevOtp(data.developmentOTP);
       }
 
       setStep('verification');
@@ -181,12 +170,9 @@ export default function AuthorityLogin() {
         throw new Error(data.message || 'Failed to resend code');
       }
 
-      // If development mode, show the OTP
+      // Show OTP inline for dev mode
       if (data.developmentOTP) {
-        alert(`New verification code: ${data.developmentOTP}`);
-        setSentCode(data.developmentOTP);
-      } else {
-        alert('New verification code sent to your email!');
+        setDevOtp(data.developmentOTP);
       }
 
       setLoading(false);
@@ -333,6 +319,20 @@ export default function AuthorityLogin() {
               <p>We've sent a 6-digit code to:</p>
               <strong>{formData.email}</strong>
             </div>
+
+            {devOtp && (
+              <div className="dev-otp-box">
+                <span className="dev-otp-label">🔧 DEV MODE — Your OTP:</span>
+                <span className="dev-otp-code">{devOtp}</span>
+                <button
+                  type="button"
+                  className="btn-autofill"
+                  onClick={() => setFormData(prev => ({ ...prev, verificationCode: devOtp }))}
+                >
+                  ✅ Auto-fill
+                </button>
+              </div>
+            )}
 
             <div className="form-group">
               <label>

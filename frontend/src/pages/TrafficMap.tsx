@@ -74,6 +74,11 @@ export default function TrafficMap() {
       }))
   ];
 
+  // Determine center from data, default to Indore
+  const mapCenter = snapshots.length > 0
+    ? { lat: snapshots[0].latitude, lng: snapshots[0].longitude }
+    : { lat: 22.7196, lng: 75.8577 };
+
   return (
     <div className="traffic-map">
       <h1>🗺️ Live Traffic Map (OpenStreetMap)</h1>
@@ -90,7 +95,7 @@ export default function TrafficMap() {
       
       <div className="map-container-wrapper">
         <OSMMap
-          center={{ lat: 40.7589, lng: -73.9851 }}
+          center={mapCenter}
           zoom={12}
           markers={markers}
           showClustering={true}

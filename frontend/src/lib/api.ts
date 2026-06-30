@@ -14,35 +14,37 @@ export const reportsApi = {
   getAll: (params?: any) => api.get('/reports', { params }),
   getById: (id: string) => api.get(`/reports/${id}`),
   create: (data: any) => api.post('/reports', data),
-  updateStatus: (id: string, status: string) => api.patch(`/reports/${id}`, { status })
+  updateStatus: (id: string, status: string) => api.patch(`/reports/${id}`, { status }),
+  delete: (id: string) => api.delete(`/reports/${id}`),
 };
 
 // Traffic API
 export const trafficApi = {
   getLive: () => api.get('/traffic/live'),
-  createSnapshot: (data: any) => api.post('/traffic/snapshot', data)
+  createSnapshot: (data: any) => api.post('/traffic/snapshot', data),
 };
 
 // Analytics API
 export const analyticsApi = {
   getHistorical: (params?: any) => api.get('/analytics/historical', { params }),
-  getReportsSummary: () => api.get('/analytics/reports-summary')
+  getReportsSummary: () => api.get('/analytics/reports-summary'),
 };
 
 // Alerts API
 export const alertsApi = {
   getAll: () => api.get('/alerts'),
   create: (data: any) => api.post('/alerts', data),
-  deactivate: (id: string) => api.patch(`/alerts/${id}/deactivate`)
+  deactivate: (id: string) => api.patch(`/alerts/${id}/deactivate`),
+  delete: (id: string) => api.delete(`/alerts/${id}`),
 };
 
 // Congestion API
 export const congestionApi = {
   detect: (params: any) => api.get('/congestion/detect', { params }),
-  getHeatmap: (params?: any) => api.get('/congestion/heatmap', { params })
+  getHeatmap: (params?: any) => api.get('/congestion/heatmap', { params }),
 };
 
 // Routes API
 export const routesApi = {
-  suggest: (data: any) => api.post('/routes/suggest', data)
+  suggest: (data: any) => api.post('/routes/suggest', data),
 };

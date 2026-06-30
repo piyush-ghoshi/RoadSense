@@ -480,3 +480,45 @@
     font-size: 3rem;
   }
 }
+
+/* Dev OTP Box */
+.dev-otp-box {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: linear-gradient(135deg, #fff8e1, #fff3e0);
+  border: 2px dashed #ff9800;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.dev-otp-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e65100;
+  white-space: nowrap;
+}
+.dev-otp-code {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #bf360c;
+  font-family: 'Courier New', monospace;
+  flex: 1;
+  text-align: center;
+}
+.btn-autofill {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 0.45rem 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.btn-autofill:hover { background: #f57c00; }
+

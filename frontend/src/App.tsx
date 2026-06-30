@@ -7,6 +7,8 @@ import Analytics from './pages/Analytics'
 import Heatmap from './pages/Heatmap'
 import RouteSuggestion from './pages/RouteSuggestion'
 import AuthorityDashboard from './pages/AuthorityDashboard'
+import AuthorityLogin from './pages/AuthorityLogin'
+import ProtectedRoute from './components/ProtectedRoute'
 import TestPage from './TestPage'
 import './App.css'
 
@@ -14,18 +16,33 @@ function App() {
   console.log('App component rendering');
   
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/test" element={<TestPage />} />
-        <Route path="/map" element={<TrafficMap />} />
-        <Route path="/heatmap" element={<Heatmap />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/routes" element={<RouteSuggestion />} />
-        <Route path="/authority" element={<AuthorityDashboard />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/authority-login" element={<AuthorityLogin />} />
+      <Route
+        path="*"
+        element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/test" element={<TestPage />} />
+              <Route path="/map" element={<TrafficMap />} />
+              <Route path="/heatmap" element={<Heatmap />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/routes" element={<RouteSuggestion />} />
+              <Route
+                path="/authority"
+                element={
+                  <ProtectedRoute>
+                    <AuthorityDashboard />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Layout>
+        }
+      />
+    </Routes>
   )
 }
 

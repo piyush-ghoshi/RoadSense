@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getSocket } from '../lib/socket';
 import type { Alert } from '../types';
 import './Layout.css';
@@ -10,7 +10,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [isAuthorityVerified, setIsAuthorityVerified] = useState(false);
+
+  useEffect(() => {
+    setIsAuthorityVerified(localStorage.getItem('authorityVerified') === 'true');
+  }, [location]);
 
   useEffect(() => {
     try {
@@ -37,6 +43,13 @@ export default function Layout({ children }: LayoutProps) {
     return location.pathname === path;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authorityVerified');
+    localStorage.removeItem('authorityData');
+    setIsAuthorityVerified(false);
+    navigate('/');
+  };
+
   return (
     <div className="layout">
       <nav className="navbar">
@@ -46,39 +59,55 @@ export default function Layout({ children }: LayoutProps) {
         <ul className="nav-links">
           <li>
             <Link to="/" className={isActive('/') ? 'active' : ''}>
-              Dashboard
+              📊 Dashboard
             </Link>
           </li>
           <li>
             <Link to="/map" className={isActive('/map') ? 'active' : ''}>
-              Live Map
+              🗺️ Live Map
             </Link>
           </li>
           <li>
             <Link to="/heatmap" className={isActive('/heatmap') ? 'active' : ''}>
-              Heatmap
+              🔥 Heatmap
             </Link>
           </li>
           <li>
             <Link to="/routes" className={isActive('/routes') ? 'active' : ''}>
-              Routes
+              🛣️ Routes
             </Link>
           </li>
           <li>
             <Link to="/reports" className={isActive('/reports') ? 'active' : ''}>
-              Reports
+              📋 Reports
             </Link>
           </li>
           <li>
             <Link to="/analytics" className={isActive('/analytics') ? 'active' : ''}>
-              Analytics
+              📈 Analytics
             </Link>
           </li>
           <li>
-            <Link to="/authority" className={isActive('/authority') ? 'active' : ''}>
-              Authority
-            </Link>
+            {isAuthorityVerified ? (
+              <Link to="/authority" className={isActive('/authority') ? 'active' : ''}>
+                👮 Authority Dashboard
+              </Link>
+            ) : (
+              <Link to="/authority-login" className={isActive('/authority-login') ? 'active' : ''}>
+                👮 Authority Login
+              </Link>
+            )}
           </li>
+          {isAuthorityVerified && (
+            <li>
+              <button
+                onClick={handleLogout}
+                className="btn-logout"
+              >
+                🚪 Logout
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
 

@@ -1,11 +1,123 @@
 .dashboard {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 1rem;
 }
 
 .dashboard h1 {
   margin-bottom: 2rem;
   color: #1a1a2e;
+  font-size: 2rem;
+}
+
+/* City Search Section */
+.city-search-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.search-container {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+
+.city-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.city-search-input:focus {
+  outline: none;
+  border-color: #0f3460;
+  box-shadow: 0 0 5px rgba(15, 52, 96, 0.2);
+}
+
+.city-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.city-suggestion-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.city-suggestion-item:hover {
+  background-color: #f5f5f5;
+}
+
+.city-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.btn-toggle-map,
+.btn-toggle-heatmap {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-toggle-map {
+  background: #0f3460;
+  color: white;
+}
+
+.btn-toggle-map:hover {
+  background: #16213e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 52, 96, 0.3);
+}
+
+.btn-toggle-heatmap {
+  background: #e65100;
+  color: white;
+}
+
+.btn-toggle-heatmap:hover {
+  background: #c95900;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+}
+
+/* Map Section */
+.map-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.map-section h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #1a1a2e;
+  font-size: 1.3rem;
 }
 
 .stats-grid {

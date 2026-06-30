@@ -106,4 +106,26 @@ router.patch('/:id/deactivate', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /alerts/:id - Permanently delete an alert
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.alert.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Alert deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting alert:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete alert'
+    });
+  }
+});
+
 export default router;

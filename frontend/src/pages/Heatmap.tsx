@@ -14,21 +14,6 @@ interface HeatmapPoint {
   timestamp: string;
 }
 
-function HeatmapUpdater({ data }: { data: HeatmapPoint[] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (data && data.length > 0) {
-      const bounds = data.map(point => [point.lat, point.lng] as [number, number]);
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
-    }
-  }, [data, map]);
-
-  return null;
-}
-
 export default function Heatmap() {
   const [timeRange, setTimeRange] = useState('60');
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
@@ -80,17 +65,6 @@ export default function Heatmap() {
     }
   };
 
-  const getColorFromIntensity = (intensity: number): string => {
-    if (intensity >= 0.75) return '#f44336'; // Red - Severe
-    if (intensity >= 0.5) return '#ff9800'; // Orange - Heavy
-    if (intensity >= 0.25) return '#ffc107'; // Yellow - Moderate
-    return '#4caf50'; // Green - Light
-  };
-
-  const getRadiusFromIntensity = (intensity: number): number => {
-    return 10 + (intensity * 20);
-  };
-
   const markers = heatmapData.map(point => ({
     position: { lat: point.lat, lng: point.lng },
     title: point.location,
@@ -98,6 +72,11 @@ export default function Heatmap() {
     severity: point.intensity >= 0.75 ? 'severe' : point.intensity >= 0.5 ? 'heavy' : point.intensity >= 0.25 ? 'moderate' : 'light',
     speed: point.speed
   }));
+
+  // Determine map center from data or default to Indore
+  const mapCenter = heatmapData.length > 0
+    ? { lat: heatmapData[0].lat, lng: heatmapData[0].lng }
+    : { lat: 22.7196, lng: 75.8577 };
 
   return (
     <div className="heatmap-page">
@@ -132,26 +111,26 @@ export default function Heatmap() {
         <div className="legend-items">
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#4caf50' }}></span>
-            <span>Light (0-25%)</span>
+            <span>Light (0–25%)</span>
           </div>
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#ffc107' }}></span>
-            <span>Moderate (25-50%)</span>
+            <span>Moderate (25–50%)</span>
           </div>
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#ff9800' }}></span>
-            <span>Heavy (50-75%)</span>
+            <span>Heavy (50–75%)</span>
           </div>
           <div className="legend-item">
             <span className="legend-color" style={{ background: '#f44336' }}></span>
-            <span>Severe (75-100%)</span>
+            <span>Severe (75–100%)</span>
           </div>
         </div>
       </div>
 
       <div className="map-container-wrapper">
         <OSMMap
-          center={{ lat: 40.7589, lng: -73.9851 }}
+          center={mapCenter}
           zoom={12}
           markers={markers}
           showClustering={false}

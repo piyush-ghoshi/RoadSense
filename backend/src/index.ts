@@ -9,6 +9,7 @@ import analyticsRouter from './routes/analytics';
 import alertsRouter from './routes/alerts';
 import congestionRouter from './routes/congestion';
 import routesRouter from './routes/routes';
+import authRouter from './routes/auth';
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/congestion', congestionRouter);
 app.use('/api/routes', routesRouter);
+app.use('/api/auth', authRouter);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

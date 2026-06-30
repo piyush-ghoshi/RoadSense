@@ -27,6 +27,10 @@ router.post('/', async (req: Request, res: Response) => {
       },
     });
 
+    // Broadcast to all connected clients
+    const io = req.app.get('io');
+    io.emit('report:new', report);
+
     res.status(201).json({
       success: true,
       data: report,
@@ -145,6 +149,10 @@ router.patch('/:id', async (req: Request, res: Response) => {
       data: { status },
     });
 
+    // Broadcast status change
+    const io = req.app.get('io');
+    io.emit('report:updated', report);
+
     res.json({
       success: true,
       data: report,
@@ -158,5 +166,29 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+// DELETE /reports/:id - Delete a report
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
+    await prisma.trafficReport.delete({
+      where: { id },
+    });
+
+    const io = req.app.get('io');
+    io.emit('report:deleted', { id });
+
+    res.json({
+      success: true,
+      message: 'Report deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting report:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete report',
+    });
+  }
+});
+
+export default router;

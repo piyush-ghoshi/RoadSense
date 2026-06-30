@@ -45,6 +45,23 @@
   background: #0f3460;
 }
 
+.btn-logout {
+  color: white;
+  background: #e74c3c;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.btn-logout:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
 .alerts-container {
   position: fixed;
   top: 80px;
