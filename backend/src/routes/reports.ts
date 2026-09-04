@@ -40,7 +40,7 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: (error as any).issues || (error as any).errors,
       });
     }
     

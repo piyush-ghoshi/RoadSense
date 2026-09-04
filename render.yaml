@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: roadsense-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npx prisma db push && npx ts-node src/seed.ts && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://frontend-three-gilt-44.vercel.app
