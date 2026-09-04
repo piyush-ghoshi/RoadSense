@@ -1,637 +1,194 @@
-# 🚦 RoadSense - Smart Traffic Management System
+# RoadSense — Intelligent Traffic Management System
 
-A comprehensive full-stack web application for real-time traffic monitoring, incident reporting, and intelligent route management. Built with modern technologies to provide commuters and traffic authorities with actionable traffic insights.
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Production%20Live-22C55E?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Status" />
+  <img src="https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  <img src="https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+  <img src="https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge" alt="License" />
+</p>
 
-[![React](https://img.shields.io/badge/React-19.2.0-blue.svg)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.18+-green.svg)](https://expressjs.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-5+-blue.svg)](https://www.prisma.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<p align="center">
+  <b>A real-time, production-ready intelligent traffic monitoring, incident reporting, and turn-by-turn route navigation platform.</b>
+</p>
 
 ---
 
-## ✨ Features
+## 🌐 Live Deployments
 
-### Core Features (All Implemented ✅)
+| Component | Platform | Live URL | Status |
+|---|---|---|---|
+| **Web Application** | **Vercel** | [https://stms-flame-alpha.vercel.app](https://stms-flame-alpha.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-22C55E?style=flat-square) |
+| **Alternate Mirror** | **Vercel** | [https://frontend-three-gilt-44.vercel.app](https://frontend-three-gilt-44.vercel.app) | ![Vercel](https://img.shields.io/badge/Live-22C55E?style=flat-square) |
+| **Backend API** | **Render** | [https://roadsense-dubz.onrender.com](https://roadsense-dubz.onrender.com) | ![Render](https://img.shields.io/badge/Live-22C55E?style=flat-square) |
+| **API Health Check** | **Render** | [https://roadsense-dubz.onrender.com/health](https://roadsense-dubz.onrender.com/health) | ![Health](https://img.shields.io/badge/Passing-22C55E?style=flat-square) |
+| **Source Code** | **GitHub** | [https://github.com/piyush-ghoshi/RoadSense](https://github.com/piyush-ghoshi/RoadSense) | ![GitHub](https://img.shields.io/badge/Main-b49c3b6-blue?style=flat-square&logo=github) |
 
-1. **🗺️ Heatmap Visualization**
-   - Interactive map with color-coded congestion intensity
-   - Real-time updates from traffic reports
-   - Customizable map layers (OpenStreetMap, Google Maps)
-   - Time range filtering
+---
 
-2. **📊 Historical Analytics**
-   - Comprehensive charts and graphs using Recharts
-   - Reports breakdown by type and severity
-   - Traffic trend analysis
-   - Historical data visualization
+## ⚡ Key Highlights
 
-3. **🚦 Live Traffic Visualization**
-   - Real-time traffic snapshots from 6 major locations
-   - Auto-refresh every 30 seconds
-   - Speed and congestion level indicators
-   - Interactive incident markers
+- **Universal Design System**: Clean, dark-navy aesthetic (`Inter` + `Outfit` typography, curated HSL color tokens, zero emojis, fully responsive flex layout).
+- **Intelligent Route Planner**:
+  - Side-by-side **horizontal flex cards** for route selection (**Fastest Route**, **Shortest Route**, **Avoid Congestion**).
+  - Real road network geometries with turn-by-turn maneuvers powered by **OSRM (Open Source Routing Machine)**.
+  - Interactive OpenStreetMap view with custom **🚩 START** and **🏁 FINISH** markers, glowing polylines, and clickable alternatives.
+- **GPS Location Detection**: Instant HTML5 Geolocation (**"My Location"**) with live radar-pulsing GPS markers.
+- **Live Travelling Navigation Mode**:
+  - Real-time turn-by-turn HUD (maneuver arrows, next-turn instructions).
+  - Dynamic speedometer (`km/h`), live ETA countdown, remaining distance, and progress bar (`0% → 100%`).
+  - Animated vehicle navigation marker following real highway and street paths.
+- **Real-Time Traffic Heatmap**: Color-coded congestion intensity layers powered by `leaflet.heat` with time-range filtering.
+- **Community Incident Reporting**: Citizens report roadblocks, accidents, and hazards with auto-categorization and severity tagging.
+- **Authority Portal**: Secure 6-digit OTP verification system, kanban triage board, and system-wide broadcast alerts.
+- **Persistent Real-Time Sync**: Low-latency bidirectional WebSocket updates powered by **Socket.IO**.
 
-4. **🔍 Congestion Detection**
-   - Automatic detection algorithm
-   - Severity classification (low, moderate, high, severe)
-   - Area-based analysis
-   - Related incidents correlation
+---
 
-5. **🚗 Alternate Route Suggestion**
-   - Multiple route options for congested areas
-   - Distance and duration estimates
-   - Traffic-adjusted routing
-   - Route comparison interface
-   - Haversine formula for distance calculation
+## 🏗️ Architecture Overview
 
-6. **🔔 Real-Time Alerts**
-   - WebSocket-powered instant notifications
-   - Toast notifications with auto-dismiss
-   - Severity-based styling
-   - Alert history tracking
+```mermaid
+graph TD
+    User([Commuter / Citizen]) -->|Browser| FE[RoadSense Web App\nVercel]
+    Authority([Traffic Authority]) -->|Admin Panel| FE
+    
+    FE -->|REST API Calls| BE[Express API Server\nRender]
+    FE <-->|Bidirectional WebSockets| BE
+    FE -->|OSRM Routing & GeoJSON| OSRM[Open Source Routing Machine]
+    FE -->|Tile Layers| OSM[OpenStreetMap / Carto]
+    
+    BE -->|Prisma ORM| DB[(SQLite Database\nPersistent Storage)]
+    BE -->|Seeded Geo-Data| DB
+```
 
-7. **👮 Authority Dashboard**
-   - Report verification and management
-   - Create system-wide alerts
-   - Incident management interface
-   - Real-time report updates
-
-8. **💾 Data Storage**
-   - Prisma ORM with SQLite/PostgreSQL
-   - Comprehensive data models
-   - Full CRUD operations
-   - Database migrations support
-
-### Additional Features
-
-- **Marker Clustering** - Handles hundreds of markers efficiently
-- **Heatmap Layer** - Visual intensity map with leaflet.heat
-- **Custom Markers** - Color-coded by severity
-- **Real-time Updates** - WebSocket integration with Socket.IO
-- **Responsive Design** - Works on desktop and mobile
-- **No API Keys Required** - Uses free OpenStreetMap
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: React 19.2 with TypeScript
-- **Build Tool**: Vite
-- **Routing**: React Router v6
-- **State Management**: TanStack Query (React Query)
-- **Real-time**: Socket.IO Client
-- **UI Components**: Material-UI, Custom CSS
-- **Maps**: Leaflet.js, OpenStreetMap, Google Maps API
+- **Framework**: React 19 + TypeScript
+- **Bundler & Tooling**: Vite (Rolldown)
+- **Routing**: React Router v7 (SPA with Vercel rewrites)
+- **State & Server Cache**: TanStack React Query v5
+- **Mapping & GIS**: Leaflet 1.9, Leaflet Heat, Leaflet MarkerCluster, OpenStreetMap
+- **Icons**: Lucide React
 - **Charts**: Recharts
-- **Styling**: CSS3, Responsive Design
+- **Styling**: Custom CSS Design System (50+ semantic tokens, responsive flexbox & CSS grid)
+- **Deployment**: Vercel
 
 ### Backend
-- **Runtime**: Node.js 20+
-- **Framework**: Express.js
-- **ORM**: Prisma
-- **Real-time**: Socket.IO
-- **Database**: SQLite (default) / PostgreSQL
-- **Validation**: Zod
-- **Language**: TypeScript
-- **Server**: ts-node-dev (development)
+- **Runtime**: Node.js 20+ (TypeScript)
+- **Framework**: Express 5
+- **Real-Time Communication**: Socket.IO
+- **Database & ORM**: Prisma ORM with SQLite
+- **Validation**: Zod 4
+- **Email Service**: Nodemailer (with fallback dev mode)
+- **Deployment**: Render Web Service (`render.yaml`)
 
-### Infrastructure
-- **Version Control**: Git & GitHub
-- **Package Manager**: npm
-- **Development**: VS Code
-- **API Style**: RESTful
+---
 
-## 📋 Prerequisites
+## 📂 Project Structure
 
-Before you begin, ensure you have the following installed:
+```
+RoadSense/
+├── frontend/                   # React + TypeScript Vite client
+│   ├── src/
+│   │   ├── components/         # Layout, OSMMap, Navigation HUD
+│   │   ├── pages/              # Dashboard, TrafficMap, Heatmap, RouteSuggestion, Reports, Analytics, Authority
+│   │   ├── lib/                # API client, Socket.io client, OSRM routingService
+│   │   ├── index.css           # Global reset, design tokens, typography
+│   │   └── theme.css           # Semantic color variables, keyframe animations
+│   ├── vercel.json             # Vercel SPA client-side rewrite rules
+│   └── package.json
+│
+├── backend/                    # Express + Socket.IO + Prisma server
+│   ├── prisma/
+│   │   └── schema.prisma       # Database schema (Reports, Snapshots, Alerts, Users)
+│   ├── src/
+│   │   ├── routes/             # Reports, Traffic, Analytics, Alerts, Routes, Auth
+│   │   ├── lib/                # Prisma client singleton
+│   │   ├── seed.ts             # Initial data seeder (Indore, Mumbai, Delhi, Bangalore)
+│   │   └── index.ts            # Server entrypoint, CORS configuration & Socket.IO handlers
+│   └── package.json
+│
+├── render.yaml                 # Render Blueprint configuration
+├── vercel.json                 # Monorepo root Vercel build configuration
+└── package.json                # Monorepo root scripts
+```
 
-- **Node.js**: v20 or higher ([Download](https://nodejs.org/))
-- **npm**: v10 or higher (comes with Node.js)
-- **Git**: For version control ([Download](https://git-scm.com/))
-- **VS Code**: Recommended editor ([Download](https://code.visualstudio.com/))
+---
 
-### Optional
-- **Google Maps API Key**: For live traffic features
-- **PostgreSQL**: For production database (optional, SQLite works for dev)
+## 🚀 Quickstart Guide
 
-## 🚀 Quick Start
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/) (v9 or higher)
+- [Git](https://git-scm.com/)
 
-### 1. Clone the Repository
+### 1. Clone Repository
 ```bash
 git clone https://github.com/piyush-ghoshi/RoadSense.git
 cd RoadSense
 ```
 
-### 2. Setup Backend
+### 2. Install & Start Backend
 ```bash
 cd backend
 npm install
-
-# Configure environment
-cp .env.example .env
-
-# Setup database
-npx prisma migrate dev
-npx prisma db seed
-
-# Start backend server
+npx prisma generate
+npx prisma db push
+npm run seed
 npm run dev
 ```
+Backend will start on `http://localhost:3000`.
 
-Backend will run on: `http://localhost:3000`
-
-### 3. Setup Frontend
-```bash
-cd ../frontend
-npm install
-
-# Start frontend development server
-npm run dev
-```
-
-Frontend will run on: `http://localhost:5173`
-
-### 4. Access the Application
-Open your browser and navigate to:
-- **Main App**: `http://localhost:5173`
-- **Backend API**: `http://localhost:3000`
-
-## 📁 Project Structure
-
-```
-RoadSense/
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma       # Database schema
-│   │   └── migrations/         # Database migrations
-│   ├── src/
-│   │   ├── index.ts            # Express server setup
-│   │   ├── seed.ts             # Database seeding
-│   │   ├── routes/
-│   │   │   ├── alerts.ts       # Alert endpoints
-│   │   │   ├── analytics.ts    # Analytics endpoints
-│   │   │   ├── auth.ts         # Authentication endpoints
-│   │   │   ├── congestion.ts   # Congestion endpoints
-│   │   │   ├── reports.ts      # Reports CRUD endpoints
-│   │   │   ├── routes.ts       # Route suggestions endpoints
-│   │   │   └── traffic.ts      # Traffic data endpoints
-│   │   └── lib/
-│   │       └── prisma.ts       # Prisma client
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── GoogleMap.tsx   # Google Maps component
-│   │   │   ├── Layout.tsx      # Main layout & navigation
-│   │   │   ├── OSMMap.tsx      # OpenStreetMap component
-│   │   │   └── ProtectedRoute.tsx # Route protection
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx   # Main dashboard
-│   │   │   ├── TrafficMap.tsx  # Live traffic map
-│   │   │   ├── Heatmap.tsx     # Heatmap visualization
-│   │   │   ├── RouteSuggestion.tsx # Route finder
-│   │   │   ├── Reports.tsx     # Report management
-│   │   │   ├── Analytics.tsx   # Analytics dashboard
-│   │   │   ├── AuthorityDashboard.tsx # Authority panel
-│   │   │   ├── AuthorityLogin.tsx # Authority login
-│   │   │   └── DashboardEnhanced.tsx # Enhanced dashboard
-│   │   ├── lib/
-│   │   │   ├── api.ts          # API client utilities
-│   │   │   └── socket.ts       # Socket.IO setup
-│   │   ├── types/
-│   │   │   └── index.ts        # TypeScript type definitions
-│   │   ├── App.tsx             # Main app component
-│   │   └── main.tsx            # React app entry point
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── tsconfig.json
-│
-├── addons/
-│   ├── docs/                   # Detailed documentation
-│   ├── diagrams/               # System diagrams (Mermaid)
-│   ├── images/                 # Project images
-│   └── *.md                    # Feature guides and tutorials
-│
-└── README.md                   # This file
-```
-
-## 🔌 API Endpoints
-
-### Base URL: `http://localhost:3000/api`
-
-### Reports
-```
-POST   /reports              - Create new report
-GET    /reports              - Get all reports (with filters)
-GET    /reports/:id          - Get report by ID
-PATCH  /reports/:id          - Update report
-DELETE /reports/:id          - Delete report
-```
-
-### Traffic Data
-```
-GET    /traffic              - Get traffic snapshots
-POST   /traffic              - Create traffic snapshot
-GET    /traffic/congestion   - Get congestion data
-```
-
-### Analytics
-```
-GET    /analytics/summary    - Get summary statistics
-GET    /analytics/reports    - Get reports analytics
-GET    /analytics/trends     - Get traffic trends
-```
-
-### Alerts
-```
-GET    /alerts               - Get all alerts
-POST   /alerts               - Create new alert
-DELETE /alerts/:id           - Delete alert
-```
-
-### Congestion
-```
-GET    /congestion           - Get congestion data
-POST   /congestion/detect    - Detect congestion
-```
-
-### Routes
-```
-POST   /routes/suggest       - Get suggested routes
-GET    /routes               - Get route history
-```
-
-### Authentication
-```
-POST   /auth/login           - Authority login
-POST   /auth/logout          - Logout
-GET    /auth/verify          - Verify token
-```
-
-## 🔄 Real-Time Events
-
-### Socket.IO Events
-
-**Server → Client:**
-```javascript
-socket.on('alert', (alert) => {})           // New alert
-socket.on('report', (report) => {})         // New report
-socket.on('traffic-update', (data) => {})   // Traffic update
-socket.on('congestion', (congestion) => {}) // Congestion change
-```
-
-**Client → Server:**
-```javascript
-socket.emit('report-submitted', (data) => {})  // Send report
-socket.emit('request-update', () => {})        // Request refresh
-```
-
-## 🗄️ Database Schema
-
-### User
-```typescript
-id            String      @id @default(cuid())
-email         String      @unique
-password      String
-name          String
-role          UserRole    // COMMUTER | AUTHORITY
-isVerified    Boolean     @default(false)
-createdAt     DateTime    @default(now())
-updatedAt     DateTime    @updatedAt
-```
-
-### TrafficReport
-```typescript
-id            String      @id @default(cuid())
-title         String
-description   String
-location      String
-latitude      Float
-longitude     Float
-type          ReportType  // ACCIDENT | CONGESTION | ROAD_WORK | etc
-severity      Severity    // LOW | MODERATE | HIGH | SEVERE
-status        ReportStatus // PENDING | VERIFIED | RESOLVED | REJECTED
-reportedBy    String      (userId)
-createdAt     DateTime    @default(now())
-updatedAt     DateTime    @updatedAt
-```
-
-### CongestionSnapshot
-```typescript
-id            String      @id @default(cuid())
-location      String
-latitude      Float
-longitude     Float
-congestionLevel String
-speed         Float
-timestamp     DateTime    @default(now())
-```
-
-### Alert
-```typescript
-id            String      @id @default(cuid())
-title         String
-message       String
-severity      Severity
-location      String
-expiresAt     DateTime
-createdAt     DateTime    @default(now())
-```
-
-## 🎨 Features in Detail
-
-### Dashboard
-- Real-time statistics (total reports, pending, resolved)
-- Recent reports list with live updates
-- Active alerts display
-- Quick access to all features
-
-### Reports Management
-- Submit detailed traffic reports with location
-- Filter reports by type, severity, status
-- Authority verification system
-- Real-time status updates
-- Report history tracking
-
-### Live Traffic Map
-- Interactive map with marker clustering
-- Real-time traffic data visualization
-- Color-coded severity levels
-- Responsive design for mobile & desktop
-- Multiple map layers support
-
-### Analytics
-- Comprehensive traffic statistics
-- Reports breakdown by type and severity
-- Historical trends and patterns
-- Visual charts using Recharts
-- Custom date range selection
-
-### Route Suggestions
-- Suggests alternate routes when congestion detected
-- Distance and duration estimates
-- Traffic-aware routing
-- Multiple options comparison
-- Route comparison UI
-
-### Authority Dashboard
-- Complete report management
-- Verify or reject submissions
-- Create system-wide alerts
-- Incident tracking
-- User authentication
-
-## 🔮 Future Enhancements
-
-- [ ] AI/ML traffic prediction
-- [ ] Integration with public transport APIs
-- [ ] Carpooling suggestions
-- [ ] Parking availability tracking
-- [ ] Emergency vehicle priority routing
-- [ ] Mobile native apps (React Native)
-- [ ] Multi-language support
-- [ ] Dark mode
-- [ ] Advanced analytics dashboard
-- [ ] IoT sensor integration
-
-## 🚀 Available Scripts
-
-### Backend Scripts
-```bash
-npm run dev       # Start development server with hot reload
-npm run build     # Build TypeScript to JavaScript
-npm run start     # Run production build
-npm run seed      # Seed database with sample data
-npm run prisma    # Run Prisma CLI
-```
-
-### Frontend Scripts
-```bash
-npm run dev       # Start development server
-npm run build     # Build for production
-npm run preview   # Preview production build
-npm run lint      # Run ESLint
-```
-
-## 🔐 Environment Configuration
-
-### Backend (.env)
-```env
-NODE_ENV=development
-PORT=3000
-DATABASE_URL=file:./dev.db
-GOOGLE_MAPS_API_KEY=your_api_key_here
-JWT_SECRET=your_jwt_secret
-CORS_ORIGIN=http://localhost:5173
-```
-
-### Frontend (.env)
-```env
-VITE_API_URL=http://localhost:3000
-VITE_GOOGLE_MAPS_KEY=your_api_key_here
-```
-
-## 📊 Data Models & Types
-
-### Enums
-```typescript
-enum UserRole {
-  COMMUTER
-  AUTHORITY
-}
-
-enum ReportType {
-  ACCIDENT
-  CONGESTION
-  ROAD_WORK
-  WEATHER
-  OTHER
-}
-
-enum Severity {
-  LOW
-  MODERATE
-  HIGH
-  SEVERE
-}
-
-enum ReportStatus {
-  PENDING
-  VERIFIED
-  RESOLVED
-  REJECTED
-}
-```
-
-## 🧪 Testing
-
-### Backend Testing
-```bash
-cd backend
-npm test              # Run unit tests
-npm run test:watch   # Watch mode
-```
-
-### Frontend Testing
+### 3. Install & Start Frontend
+In a new terminal window:
 ```bash
 cd frontend
-npm test             # Run tests
-npm run test:watch  # Watch mode
+npm install
+npm run dev
+```
+Frontend will be live at `http://localhost:5173`.
+
+---
+
+## 🔌 API Endpoints Reference
+
+### Traffic & Routing
+- `GET /api/traffic/live` — Retrieve live congestion snapshots and active traffic points
+- `POST /api/traffic/snapshot` — Ingest sensor/camera traffic snapshot
+- `POST /api/routes/suggest` — Calculate alternative routes based on congestion
+
+### Incident Reports
+- `GET /api/reports` — Fetch filtered citizen traffic reports (supports status, severity, date range)
+- `POST /api/reports` — Submit new incident report (broadcasts via WebSocket `report:new`)
+- `PATCH /api/reports/:id` — Update report status (`verified`, `resolved`, `false`)
+
+### Alerts & Authority
+- `GET /api/alerts` — Fetch active emergency and congestion broadcasts
+- `POST /api/alerts` — Publish new alert (broadcasts via WebSocket `alert:new`)
+- `POST /api/auth/send-otp` — Request authority verification 6-digit OTP
+- `POST /api/auth/verify-otp` — Validate OTP and issue authority session token
+
+---
+
+## 🌍 Environment Variables
+
+### Frontend (`frontend/.env`)
+```env
+VITE_API_URL=https://roadsense-dubz.onrender.com/api
 ```
 
-## 🔄 Development Workflow
-
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make your changes**
-   - Write clean, documented code
-   - Follow TypeScript best practices
-   - Use meaningful commit messages
-
-3. **Test your changes**
-   - Test locally before committing
-   - Check for console errors/warnings
-
-4. **Commit and push**
-   ```bash
-   git add .
-   git commit -m "feat: describe your feature"
-   git push origin feature/your-feature-name
-   ```
-
-5. **Create a Pull Request**
-   - Describe your changes
-   - Reference related issues
-   - Request review
-
-## 🌐 Deployment
-
-### Frontend Deployment (Vercel/Netlify)
-```bash
-npm run build
-# Deploy the dist folder to Vercel or Netlify
+### Backend (`backend/.env`)
+```env
+PORT=3000
+NODE_ENV=production
+FRONTEND_URL=https://stms-flame-alpha.vercel.app
+DATABASE_URL="file:./dev.db"
 ```
 
-### Backend Deployment (Render/Fly.io)
-```bash
-# Update .env with production values
-npm run build
-# Deploy to your hosting provider
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Port already in use**
-```bash
-# Change port in backend/src/index.ts or .env
-# Or kill the process using the port
-# Windows:
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-```
-
-**Database connection error**
-```bash
-# Reset database
-npx prisma db push --force-reset
-npx prisma db seed
-```
-
-**CORS errors**
-- Verify `CORS_ORIGIN` in backend .env matches frontend URL
-
-**Socket.IO connection issues**
-- Check WebSocket support in your network
-- Verify backend is running on correct port
-
-**Missing environment variables**
-- Copy `.env.example` to `.env`
-- Fill in required values
-
-## 📚 Documentation
-
-For detailed guides and tutorials, check the `/addons` directory:
-
-- `START_HERE.md` - Project overview and setup
-- `QUICKSTART.md` - Quick setup guide
-- `USER_GUIDE.md` - Complete user manual
-- `FEATURES.md` - Feature checklist
-- `TESTING_GUIDE.md` - Testing instructions
-- `TROUBLESHOOTING.md` - Common issues & solutions
-- `ROADSENSE_UPDATES.md` - Latest updates
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Guidelines
-- Write clear, descriptive commit messages
-- Add comments for complex logic
-- Update documentation as needed
-- Test your code before submitting
-- Follow existing code style
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Developer**: Piyush Ghoshi
-- **Role**: Full Stack Developer
-
-## 🙏 Acknowledgments
-
-- OpenStreetMap for map services
-- Google Maps API for traffic data
-- React community for excellent tools
-- Prisma for amazing ORM
-- Socket.IO for real-time communication
-
-## 📞 Support
-
-For support, email support@roadsense.com or open an issue on GitHub.
-
-### Resources
-- [Project Documentation](./addons/)
-- [GitHub Issues](https://github.com/piyush-ghoshi/RoadSense/issues)
-- [Discussions](https://github.com/piyush-ghoshi/RoadSense/discussions)
-
-## 🎯 Project Goals
-
-✅ Real-time traffic monitoring for commuters
-✅ Comprehensive incident reporting system
-✅ Intelligent route optimization
-✅ Authority-level management dashboard
-✅ Historical data analytics
-✅ Scalable and maintainable codebase
-✅ Production-ready application
-
----
-
-**Last Updated**: December 2025
-
-**Version**: 1.0.0
-
----
-
-<div align="center">
-Made with ❤️ by Piyush Ghoshi
-</div>
-
-**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Date:** November 2025
+This project is licensed under the [MIT License](LICENSE).
