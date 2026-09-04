@@ -1,71 +1,82 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { analyticsApi, reportsApi, alertsApi, trafficApi, congestionApi } from '../lib/api';
+import { Link } from 'react-router-dom';
+import {
+  FileText, MapPin, Navigation2, TrendingUp,
+  AlertTriangle, CheckCircle, Clock, Activity, RefreshCw,
+  ArrowRight, Plus
+} from 'lucide-react';
+import { analyticsApi, reportsApi, alertsApi, trafficApi } from '../lib/api';
 import { getSocket } from '../lib/socket';
 import OSMMap from '../components/OSMMap';
 import './Dashboard.css';
 
-interface CityCoordinates {
-  [key: string]: { lat: number; lng: number };
-}
+interface CityCoordinates { [key: string]: { lat: number; lng: number }; }
 
 const CITY_COORDINATES: CityCoordinates = {
-  'new york': { lat: 40.7128, lng: -74.0060 },
-  'los angeles': { lat: 34.0522, lng: -118.2437 },
-  'chicago': { lat: 41.8781, lng: -87.6298 },
-  'houston': { lat: 29.7604, lng: -95.3698 },
-  'phoenix': { lat: 33.4484, lng: -112.0742 },
-  'philadelphia': { lat: 39.9526, lng: -75.1652 },
-  'san antonio': { lat: 29.4241, lng: -98.4936 },
-  'san diego': { lat: 32.7157, lng: -117.1611 },
-  'dallas': { lat: 32.7767, lng: -96.7970 },
-  'san jose': { lat: 37.3382, lng: -121.8863 },
-  'austin': { lat: 30.2672, lng: -97.7431 },
-  'denver': { lat: 39.7392, lng: -104.9903 },
-  'seattle': { lat: 47.6062, lng: -122.3321 },
-  'boston': { lat: 42.3601, lng: -71.0589 },
-  'miami': { lat: 25.7617, lng: -80.1918 },
-  'indore': { lat: 22.7196, lng: 75.8577 },
-  'mumbai': { lat: 19.0760, lng: 72.8777 },
-  'delhi': { lat: 28.7041, lng: 77.1025 },
+  'indore':    { lat: 22.7196, lng: 75.8577 },
+  'mumbai':    { lat: 19.0760, lng: 72.8777 },
+  'delhi':     { lat: 28.7041, lng: 77.1025 },
   'bangalore': { lat: 12.9716, lng: 77.5946 },
+  'pune':      { lat: 18.5204, lng: 73.8567 },
+  'hyderabad': { lat: 17.3850, lng: 78.4867 },
+  'chennai':   { lat: 13.0827, lng: 80.2707 },
+  'kolkata':   { lat: 22.5726, lng: 88.3639 },
+  'new york':  { lat: 40.7128, lng: -74.0060 },
+  'los angeles': { lat: 34.0522, lng: -118.2437 },
+  'chicago':   { lat: 41.8781, lng: -87.6298 },
+  'houston':   { lat: 29.7604, lng: -95.3698 },
+  'seattle':   { lat: 47.6062, lng: -122.3321 },
+  'london':    { lat: 51.5074, lng: -0.1278 },
+  'tokyo':     { lat: 35.6762, lng: 139.6503 },
 };
+
+function LiveClock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="live-clock">
+      <span className="clock-time">{time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+      <span className="clock-date">{time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [selectedCity, setSelectedCity] = useState('indore');
   const [searchInput, setSearchInput] = useState('');
   const [filteredCities, setFilteredCities] = useState<string[]>([]);
   const [mapCenter, setMapCenter] = useState(CITY_COORDINATES['indore']);
-  const [showMap, setShowMap] = useState(false);
-  const [showHeatmap, setShowHeatmap] = useState(false);
   const [mapMarkers, setMapMarkers] = useState<any[]>([]);
-  const [heatmapData, setHeatmapData] = useState<any[]>([]);
 
-  const { data: summary, isLoading: summaryLoading, error: summaryError } = useQuery({
+  const { data: summary, refetch: refetchSummary } = useQuery({
     queryKey: ['reports-summary'],
     queryFn: async () => {
       const res = await analyticsApi.getReportsSummary();
-      console.log('Summary data:', res.data);
       return res.data.data;
-    }
+    },
+    refetchInterval: 30000
   });
 
-  const { data: recentReports, isLoading: reportsLoading, error: reportsError } = useQuery({
+  const { data: recentReports } = useQuery({
     queryKey: ['recent-reports'],
     queryFn: async () => {
-      const res = await reportsApi.getAll({ limit: 5 });
-      console.log('Recent reports:', res.data);
+      const res = await reportsApi.getAll({ limit: 6 });
       return res.data.data;
-    }
+    },
+    refetchInterval: 15000
   });
 
-  const { data: activeAlerts, isLoading: alertsLoading, error: alertsError } = useQuery({
+  const { data: activeAlerts } = useQuery({
     queryKey: ['active-alerts'],
     queryFn: async () => {
       const res = await alertsApi.getAll();
-      console.log('Active alerts:', res.data);
       return res.data.data;
-    }
+    },
+    refetchInterval: 15000
   });
 
   const { data: liveTraffic } = useQuery({
@@ -77,56 +88,34 @@ export default function Dashboard() {
     refetchInterval: 30000
   });
 
-  const { data: heatmapApiData } = useQuery({
-    queryKey: ['heatmap-data'],
-    queryFn: async () => {
-      const res = await congestionApi.getHeatmap({ timeRange: '60' });
-      return res.data.data;
-    },
-    refetchInterval: 30000
-  });
-
   useEffect(() => {
-    if (liveTraffic && liveTraffic.length > 0) {
-      const markers = liveTraffic.map((data: any) => ({
-        lat: data.latitude,
-        lng: data.longitude,
-        title: data.location,
-        popup: `${data.location}<br/>Speed: ${data.trafficSpeed} km/h<br/>Level: ${data.congestionLevel}`
-      }));
-      setMapMarkers(markers);
+    if (liveTraffic?.length > 0) {
+      setMapMarkers(liveTraffic.map((d: any) => ({
+        lat: d.latitude, lng: d.longitude,
+        title: d.location,
+        popup: `${d.location}<br/>Speed: ${d.trafficSpeed} km/h<br/>Level: ${d.congestionLevel}`
+      })));
     }
   }, [liveTraffic]);
 
   useEffect(() => {
-    if (heatmapApiData) {
-      setHeatmapData(heatmapApiData);
-    }
-  }, [heatmapApiData]);
-
-  useEffect(() => {
-    const socket = getSocket();
-    socket.on('traffic:update', (snapshot: any) => {
-      setMapMarkers(prev => [...prev, {
-        lat: snapshot.latitude,
-        lng: snapshot.longitude,
-        title: snapshot.location,
-        popup: `${snapshot.location}<br/>Speed: ${snapshot.trafficSpeed} km/h`
-      }].slice(0, 50));
-    });
-    
-    return () => {
-      socket.off('traffic:update');
-    };
+    try {
+      const socket = getSocket();
+      socket.on('traffic:update', (snapshot: any) => {
+        setMapMarkers(prev => [{
+          lat: snapshot.latitude, lng: snapshot.longitude,
+          title: snapshot.location,
+          popup: `${snapshot.location}<br/>Speed: ${snapshot.trafficSpeed} km/h`
+        }, ...prev].slice(0, 50));
+      });
+      return () => { socket.off('traffic:update'); };
+    } catch {}
   }, []);
 
   const handleCitySearch = (input: string) => {
     setSearchInput(input);
     if (input.trim().length > 0) {
-      const filtered = Object.keys(CITY_COORDINATES).filter(city =>
-        city.includes(input.toLowerCase())
-      );
-      setFilteredCities(filtered);
+      setFilteredCities(Object.keys(CITY_COORDINATES).filter(c => c.includes(input.toLowerCase())));
     } else {
       setFilteredCities([]);
     }
@@ -134,155 +123,208 @@ export default function Dashboard() {
 
   const handleCitySelect = (city: string) => {
     setSelectedCity(city);
-    setMapCenter(CITY_COORDINATES[city.toLowerCase()]);
+    setMapCenter(CITY_COORDINATES[city]);
     setSearchInput('');
     setFilteredCities([]);
-    setShowMap(true);
   };
 
-  console.log('Dashboard state:', { summary, recentReports, activeAlerts });
+  const getSeverityClass = (s: string) => ({ low: 'pill-success', medium: 'pill-warning', high: 'pill-warning', critical: 'pill-danger' }[s] || 'pill-muted');
+  const getTypeIcon = (type: string) => {
+    const map: Record<string, any> = { accident: AlertTriangle, roadblock: Activity, diversion: Navigation2, congestion: Activity, other: MapPin };
+    return map[type] || MapPin;
+  };
 
-  if (summaryLoading || reportsLoading || alertsLoading) {
-    return <div className="dashboard"><h1>Loading...</h1></div>;
-  }
+  const resolutionRate = summary?.total ? Math.round((summary.resolved / summary.total) * 100) : 0;
 
-  if (summaryError || reportsError || alertsError) {
-    return (
-      <div className="dashboard">
-        <h1>Error Loading Dashboard</h1>
-        <p>Please check the console for details.</p>
-      </div>
-    );
-  }
+  const kpiCards = [
+    {
+      label: 'Total Reports',
+      value: summary?.total ?? 0,
+      icon: FileText,
+      iconBg: 'rgba(59,130,246,0.15)',
+      iconColor: '#3B82F6',
+      trend: null,
+    },
+    {
+      label: 'Pending Review',
+      value: summary?.pending ?? 0,
+      icon: Clock,
+      iconBg: 'rgba(245,158,11,0.15)',
+      iconColor: '#F59E0B',
+      trend: null,
+    },
+    {
+      label: 'Resolved',
+      value: summary?.resolved ?? 0,
+      icon: CheckCircle,
+      iconBg: 'rgba(16,185,129,0.15)',
+      iconColor: '#10B981',
+      trend: `${resolutionRate}% rate`,
+    },
+    {
+      label: 'Active Alerts',
+      value: activeAlerts?.length ?? 0,
+      icon: AlertTriangle,
+      iconBg: 'rgba(239,68,68,0.15)',
+      iconColor: '#EF4444',
+      trend: null,
+    },
+  ];
 
   return (
-    <div className="dashboard">
-      <h1>🚦 Smart Traffic Dashboard</h1>
-
-      {/* City Search Section */}
-      <div className="city-search-section">
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="🔍 Search cities (e.g., New York, Mumbai, Indore)..."
-            value={searchInput}
-            onChange={(e) => handleCitySearch(e.target.value)}
-            className="city-search-input"
-          />
-          {filteredCities.length > 0 && (
-            <div className="city-suggestions">
-              {filteredCities.map((city) => (
-                <div
-                  key={city}
-                  className="city-suggestion-item"
-                  onClick={() => handleCitySelect(city)}
-                >
-                  📍 {city.charAt(0).toUpperCase() + city.slice(1)}
-                </div>
-              ))}
-            </div>
-          )}
+    <div className="dashboard animate-fade-in-up">
+      {/* Header */}
+      <div className="dashboard-header">
+        <div>
+          <h1 className="page-title">RoadSense Control Center</h1>
+          <p className="page-subtitle">Real-time traffic monitoring and incident management</p>
         </div>
-        <button
-          className="btn-toggle-map"
-          onClick={() => setShowMap(!showMap)}
-        >
-          {showMap ? '🗺️ Hide Map' : '🗺️ Show Live Map'}
-        </button>
-        <button
-          className="btn-toggle-heatmap"
-          onClick={() => setShowHeatmap(!showHeatmap)}
-        >
-          {showHeatmap ? '🔥 Hide Heatmap' : '🔥 Show Heatmap'}
-        </button>
-      </div>
-
-      {/* Live Map Section */}
-      {showMap && (
-        <div className="map-section">
-          <h2>📍 Live Traffic Map - {selectedCity.toUpperCase()}</h2>
-          <OSMMap
-            center={mapCenter}
-            zoom={12}
-            markers={mapMarkers}
-            showClustering={true}
-          />
-        </div>
-      )}
-
-      {/* Heatmap Section */}
-      {showHeatmap && (
-        <div className="map-section">
-          <h2>🔥 Congestion Heatmap</h2>
-          <OSMMap
-            center={mapCenter}
-            zoom={12}
-            markers={heatmapData.map((point: any) => ({
-              lat: point.lat,
-              lng: point.lng,
-              title: point.location,
-              popup: `${point.location}<br/>Intensity: ${point.intensity}/10`
-            }))}
-            showHeatmap={true}
-          />
-        </div>
-      )}
-
-      {/* Statistics Grid */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>📊 Total Reports</h3>
-          <p className="stat-value">{summary?.total || 0}</p>
-        </div>
-        <div className="stat-card">
-          <h3>⏳ Pending</h3>
-          <p className="stat-value pending">{summary?.pending || 0}</p>
-        </div>
-        <div className="stat-card">
-          <h3>✅ Resolved</h3>
-          <p className="stat-value resolved">{summary?.resolved || 0}</p>
-        </div>
-        <div className="stat-card">
-          <h3>⚠️ Active Alerts</h3>
-          <p className="stat-value alerts">{activeAlerts?.length || 0}</p>
+        <div className="dashboard-header-right">
+          <LiveClock />
+          <button className="btn-ghost" onClick={() => refetchSummary()} style={{ gap: 6 }}>
+            <RefreshCw size={14}/> Refresh
+          </button>
         </div>
       </div>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-section">
-          <h2>📋 Recent Reports</h2>
-          <div className="reports-list">
-            {!recentReports || recentReports.length === 0 ? (
-              <p>No reports yet</p>
-            ) : (
-              recentReports.map((report: any) => (
-              <div key={report.id} className="report-item">
-                <div className="report-header">
-                  <span className={`badge badge-${report.type}`}>{report.type}</span>
-                  <span className={`severity severity-${report.severity}`}>{report.severity}</span>
+      {/* KPI Grid */}
+      <div className="kpi-grid">
+        {kpiCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div key={i} className="kpi-card" style={{ animationDelay: `${i * 60}ms` }}>
+              <div className="kpi-top">
+                <div className="kpi-card-icon" style={{ background: card.iconBg }}>
+                  <Icon size={20} color={card.iconColor} />
                 </div>
-                <p className="report-location">📍 {report.location}</p>
-                <p className="report-time">🕐 {new Date(report.createdAt).toLocaleString()}</p>
+                {card.trend && (
+                  <span className="kpi-rate pill pill-success">{card.trend}</span>
+                )}
               </div>
-              ))
+              <div className="kpi-card-value">{card.value}</div>
+              <div className="kpi-card-label">{card.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <Link to="/reports" className="quick-action-btn btn-primary">
+          <Plus size={16}/> Report Incident
+        </Link>
+        <Link to="/map" className="quick-action-btn btn-ghost">
+          <MapPin size={16}/> View Live Map
+        </Link>
+        <Link to="/routes" className="quick-action-btn btn-ghost">
+          <Navigation2 size={16}/> Plan Routes
+        </Link>
+        <Link to="/analytics" className="quick-action-btn btn-ghost">
+          <TrendingUp size={16}/> Analytics
+        </Link>
+      </div>
+
+      {/* Map + City Search */}
+      <div className="card dashboard-map-section">
+        <div className="map-section-header">
+          <div>
+            <div className="section-title"><Activity size={18}/> Live Traffic Map</div>
+            <p className="page-subtitle" style={{ marginTop: 4 }}>
+              {selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1)} — {mapMarkers.length} active feed points
+            </p>
+          </div>
+          <div className="city-search-wrapper">
+            <div className="city-search-input-wrap">
+              <MapPin size={14} className="city-search-icon" />
+              <input
+                type="text"
+                placeholder="Search city..."
+                value={searchInput}
+                onChange={e => handleCitySearch(e.target.value)}
+                className="city-search-input"
+              />
+            </div>
+            {filteredCities.length > 0 && (
+              <div className="city-dropdown">
+                {filteredCities.map(city => (
+                  <div key={city} className="city-dropdown-item" onClick={() => handleCitySelect(city)}>
+                    <MapPin size={12}/> {city.charAt(0).toUpperCase() + city.slice(1)}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
+        <div className="map-embed-wrapper">
+          <OSMMap center={mapCenter} zoom={12} markers={mapMarkers} showClustering={true} />
+        </div>
+      </div>
 
-        <div className="dashboard-section">
-          <h2>🚨 Active Alerts</h2>
-          <div className="alerts-list">
-            {!activeAlerts || activeAlerts.length === 0 ? (
-              <p>No active alerts</p>
-            ) : (
-              activeAlerts.map((alert: any) => (
-              <div key={alert.id} className={`alert-item alert-${alert.severity}`}>
-                <h4>⚠️ {alert.title}</h4>
-                <p>{alert.message}</p>
-                <small>🕐 {new Date(alert.createdAt).toLocaleString()}</small>
+      {/* Bottom Grid */}
+      <div className="dashboard-bottom-grid">
+        {/* Recent Reports */}
+        <div className="card">
+          <div className="section-header">
+            <div className="section-title"><FileText size={16}/> Recent Reports</div>
+            <Link to="/reports" className="btn-ghost" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+              View all <ArrowRight size={12}/>
+            </Link>
+          </div>
+          <div className="reports-feed">
+            {!recentReports || recentReports.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon"><FileText size={22}/></div>
+                <p>No reports yet</p>
               </div>
-              ))
-            )}
+            ) : recentReports.map((report: any) => {
+              const Icon = getTypeIcon(report.type);
+              return (
+                <div key={report.id} className={`report-feed-item severity-stripe-${report.severity}`}>
+                  <div className="report-feed-icon">
+                    <Icon size={14}/>
+                  </div>
+                  <div className="report-feed-body">
+                    <div className="report-feed-location">{report.location}</div>
+                    <div className="report-feed-meta">
+                      <span className={`pill ${getSeverityClass(report.severity)}`}>{report.severity}</span>
+                      <span className="report-feed-type">{report.type}</span>
+                    </div>
+                  </div>
+                  <div className="report-feed-time">
+                    {new Date(report.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Active Alerts */}
+        <div className="card">
+          <div className="section-header">
+            <div className="section-title"><AlertTriangle size={16}/> Active Alerts</div>
+            <span className="pill pill-danger">{activeAlerts?.length || 0} active</span>
+          </div>
+          <div className="alerts-feed">
+            {!activeAlerts || activeAlerts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon"><CheckCircle size={22}/></div>
+                <h3>All Clear</h3>
+                <p>No active alerts at this time</p>
+              </div>
+            ) : activeAlerts.map((alert: any) => (
+              <div key={alert.id} className={`alert-feed-item alert-severity-${alert.severity}`}>
+                <div className="alert-feed-header">
+                  <span className={`pill ${alert.severity === 'critical' ? 'pill-danger' : alert.severity === 'warning' ? 'pill-warning' : 'pill-info'}`}>
+                    {alert.severity}
+                  </span>
+                  <span className="alert-feed-type">{alert.type}</span>
+                </div>
+                <div className="alert-feed-title">{alert.title}</div>
+                <div className="alert-feed-msg">{alert.message}</div>
+                <div className="alert-feed-time">{new Date(alert.createdAt).toLocaleString()}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

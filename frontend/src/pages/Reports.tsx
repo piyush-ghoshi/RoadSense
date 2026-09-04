@@ -1,30 +1,46 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Plus, X, Search, MapPin, AlertTriangle,
+  CheckCircle, Clock, Trash2, CheckCheck, XCircle,
+  Navigation2, Activity, Download, FileText
+} from 'lucide-react';
 import { reportsApi } from '../lib/api';
 import { getSocket } from '../lib/socket';
 import './Reports.css';
 
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'error';
-}
+interface Toast { id: string; message: string; type: 'success' | 'error' | 'info'; }
+
+const TYPE_ICONS: Record<string, any> = {
+  accident: AlertTriangle, roadblock: Activity, diversion: Navigation2, congestion: Activity, other: MapPin
+};
+
+const SEVERITY_CLASSES: Record<string, string> = {
+  low: 'pill-success', medium: 'pill-warning', high: 'pill-warning', critical: 'pill-danger'
+};
+const SEVERITY_COLORS: Record<string, string> = {
+  low: 'var(--traffic-green)', medium: 'var(--traffic-yellow)', high: 'var(--traffic-orange)', critical: 'var(--traffic-red)'
+};
+const STATUS_CLASSES: Record<string, string> = {
+  pending: 'pill-warning', verified: 'pill-info', resolved: 'pill-success', false: 'pill-muted'
+};
 
 export default function Reports() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [searchText, setSearchText] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [formData, setFormData] = useState({
-    type: 'accident',
-    severity: 'medium',
-    location: '',
-    description: '',
-    latitude: undefined as number | undefined,
-    longitude: undefined as number | undefined,
+    type: 'accident', severity: 'medium', location: '', description: '',
+    latitude: undefined as number | undefined, longitude: undefined as number | undefined,
   });
 
-  const showToast = (message: string, type: 'success' | 'error') => {
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
@@ -32,30 +48,15 @@ export default function Reports() {
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ['reports'],
-    queryFn: async () => {
-      const res = await reportsApi.getAll();
-      return res.data.data;
-    }
+    queryFn: async () => { const res = await reportsApi.getAll(); return res.data.data; }
   });
 
-  // Listen for real-time new reports
   useEffect(() => {
     const socket = getSocket();
-    socket.on('report:new', () => {
-      queryClient.invalidateQueries({ queryKey: ['reports'] });
-      queryClient.invalidateQueries({ queryKey: ['reports-summary'] });
-    });
-    socket.on('report:updated', () => {
-      queryClient.invalidateQueries({ queryKey: ['reports'] });
-    });
-    socket.on('report:deleted', () => {
-      queryClient.invalidateQueries({ queryKey: ['reports'] });
-    });
-    return () => {
-      socket.off('report:new');
-      socket.off('report:updated');
-      socket.off('report:deleted');
-    };
+    socket.on('report:new',     () => { queryClient.invalidateQueries({ queryKey: ['reports'] }); queryClient.invalidateQueries({ queryKey: ['reports-summary'] }); });
+    socket.on('report:updated', () => queryClient.invalidateQueries({ queryKey: ['reports'] }));
+    socket.on('report:deleted', () => { queryClient.invalidateQueries({ queryKey: ['reports'] }); queryClient.invalidateQueries({ queryKey: ['reports-summary'] }); });
+    return () => { socket.off('report:new'); socket.off('report:updated'); socket.off('report:deleted'); };
   }, [queryClient]);
 
   const createMutation = useMutation({
@@ -65,24 +66,19 @@ export default function Reports() {
       queryClient.invalidateQueries({ queryKey: ['reports-summary'] });
       setShowForm(false);
       setFormData({ type: 'accident', severity: 'medium', location: '', description: '', latitude: undefined, longitude: undefined });
-      showToast('✅ Report submitted successfully!', 'success');
+      showToast('Report submitted successfully', 'success');
     },
-    onError: () => {
-      showToast('❌ Failed to submit report. Please try again.', 'error');
-    }
+    onError: () => showToast('Failed to submit report. Please try again.', 'error')
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      reportsApi.updateStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: string }) => reportsApi.updateStatus(id, status),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['reports-summary'] });
-      showToast(`✅ Report marked as ${vars.status}`, 'success');
+      showToast(`Report marked as ${vars.status}`, 'success');
     },
-    onError: () => {
-      showToast('❌ Failed to update status.', 'error');
-    }
+    onError: () => showToast('Failed to update status.', 'error')
   });
 
   const deleteMutation = useMutation({
@@ -90,40 +86,28 @@ export default function Reports() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       queryClient.invalidateQueries({ queryKey: ['reports-summary'] });
-      showToast('🗑️ Report deleted', 'success');
+      showToast('Report deleted', 'info');
     },
-    onError: () => {
-      showToast('❌ Failed to delete report.', 'error');
-    }
+    onError: () => showToast('Failed to delete.', 'error')
   });
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      showToast('❌ Geolocation is not supported by your browser.', 'error');
-      return;
-    }
+    if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
+      ({ coords: { latitude, longitude } }) => {
         setFormData(prev => ({ ...prev, latitude, longitude }));
         setLocationLoading(false);
-        showToast(`📍 Location captured: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`, 'success');
+        showToast(`GPS captured: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`, 'success');
       },
-      () => {
-        setLocationLoading(false);
-        showToast('❌ Could not get your location. Please allow location access.', 'error');
-      },
+      () => { setLocationLoading(false); showToast('Could not get location. Allow location access.', 'error'); },
       { timeout: 10000 }
     );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.location.trim()) {
-      showToast('❌ Please enter a location name.', 'error');
-      return;
-    }
+    if (!formData.location.trim()) { showToast('Please enter a location name.', 'error'); return; }
     createMutation.mutate(formData);
   };
 
@@ -131,209 +115,240 @@ export default function Reports() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const getSeverityColor = (severity: string) => {
-    const map: Record<string, string> = {
-      low: '#4caf50', medium: '#ffc107', high: '#ff9800', critical: '#f44336'
-    };
-    return map[severity] || '#9e9e9e';
+  const exportCSV = () => {
+    if (!filtered || filtered.length === 0) return;
+    const header = ['ID','Type','Severity','Status','Location','Description','Lat','Lng','Created'];
+    const rows = filtered.map((r: any) => [
+      r.id, r.type, r.severity, r.status, `"${r.location}"`, `"${r.description || ''}"`,
+      r.latitude || '', r.longitude || '', new Date(r.createdAt).toLocaleString()
+    ]);
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'roadsense_reports.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Reports exported as CSV', 'success');
   };
 
-  const getTypeIcon = (type: string) => {
-    const map: Record<string, string> = {
-      accident: '💥', roadblock: '🚧', diversion: '↩️', congestion: '🚗', other: '⚠️'
-    };
-    return map[type] || '📍';
-  };
+  // Filter & sort
+  const filtered = reports?.filter((r: any) => {
+    if (filterStatus !== 'all' && r.status !== filterStatus) return false;
+    if (filterType !== 'all' && r.type !== filterType) return false;
+    if (filterSeverity !== 'all' && r.severity !== filterSeverity) return false;
+    if (searchText && !r.location.toLowerCase().includes(searchText.toLowerCase())) return false;
+    return true;
+  }).sort((a: any, b: any) => {
+    if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    const sv = { critical: 4, high: 3, medium: 2, low: 1 };
+    return (sv[b.severity as keyof typeof sv] || 0) - (sv[a.severity as keyof typeof sv] || 0);
+  });
 
-  const getStatusIcon = (status: string) => {
-    const map: Record<string, string> = {
-      pending: '⏳', verified: '✅', resolved: '🎉', false: '❌'
-    };
-    return map[status] || '❓';
-  };
+  const pendingCount = reports?.filter((r: any) => r.status === 'pending').length || 0;
 
   return (
-    <div className="reports-page">
-      {/* Toast Notifications */}
-      <div className="toast-container">
-        {toasts.map(toast => (
-          <div key={toast.id} className={`toast toast-${toast.type}`}>
-            {toast.message}
+    <div className="reports-page animate-fade-in-up">
+      {/* Toast stack */}
+      <div className="toast-stack">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast toast-${t.type}`}>
+            {t.type === 'success' ? <CheckCircle size={15}/> : t.type === 'error' ? <XCircle size={15}/> : <AlertTriangle size={15}/>}
+            <span className="toast-msg">{t.message}</span>
           </div>
         ))}
       </div>
 
+      {/* Header */}
       <div className="reports-header">
-        <h1>📋 Traffic Reports</h1>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? '✕ Cancel' : '+ New Report'}
-        </button>
+        <div>
+          <h1 className="page-title">Traffic Reports</h1>
+          <p className="page-subtitle">{filtered?.length ?? 0} reports · {pendingCount} pending review</p>
+        </div>
+        <div className="reports-header-actions">
+          <button className="btn-ghost" onClick={exportCSV}>
+            <Download size={15}/> Export CSV
+          </button>
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? <><X size={15}/> Cancel</> : <><Plus size={15}/> New Report</>}
+          </button>
+        </div>
       </div>
 
+      {/* Filter & Search Bar */}
+      <div className="card reports-filter-bar">
+        <div className="filter-search">
+          <Search size={15} className="filter-search-icon"/>
+          <input
+            type="text" placeholder="Search by location..."
+            value={searchText} onChange={e => setSearchText(e.target.value)}
+            className="filter-search-input"
+          />
+        </div>
+        <div className="filter-pills">
+          {['all','pending','verified','resolved'].map(s => (
+            <button key={s} className={`filter-pill ${filterStatus === s ? 'active' : ''}`} onClick={() => setFilterStatus(s)}>
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="filter-selects">
+          <select value={filterType} onChange={e => setFilterType(e.target.value)} className="filter-select">
+            <option value="all">All Types</option>
+            <option value="accident">Accident</option>
+            <option value="roadblock">Roadblock</option>
+            <option value="diversion">Diversion</option>
+            <option value="congestion">Congestion</option>
+            <option value="other">Other</option>
+          </select>
+          <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value)} className="filter-select">
+            <option value="all">All Severities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
+          </select>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="filter-select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="severity">By Severity</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Slide-in form panel */}
       {showForm && (
-        <div className="report-form-container">
-          <h2>🚨 Submit Traffic Report</h2>
+        <div className="report-form-panel card animate-slide-in-up">
+          <div className="form-panel-header">
+            <h2 className="section-title"><AlertTriangle size={18}/> Submit Incident Report</h2>
+            <button className="btn-icon" onClick={() => setShowForm(false)}><X size={16}/></button>
+          </div>
           <form onSubmit={handleSubmit} className="report-form">
-            <div className="form-row">
+            <div className="form-row-2">
               <div className="form-group">
-                <label>Incident Type</label>
+                <label className="form-label">Incident Type</label>
                 <select name="type" value={formData.type} onChange={handleChange} required>
-                  <option value="accident">💥 Accident</option>
-                  <option value="roadblock">🚧 Roadblock</option>
-                  <option value="diversion">↩️ Diversion</option>
-                  <option value="congestion">🚗 Congestion</option>
-                  <option value="other">⚠️ Other</option>
+                  <option value="accident">Accident</option>
+                  <option value="roadblock">Roadblock</option>
+                  <option value="diversion">Diversion</option>
+                  <option value="congestion">Congestion</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>Severity</label>
+                <label className="form-label">Severity Level</label>
                 <select name="severity" value={formData.severity} onChange={handleChange} required>
-                  <option value="low">🟢 Low</option>
-                  <option value="medium">🟡 Medium</option>
-                  <option value="high">🟠 High</option>
-                  <option value="critical">🔴 Critical</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
                 </select>
               </div>
             </div>
 
             <div className="form-group">
-              <label>Location Name *</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g. Vijay Nagar Square, Indore"
-                required
-              />
+              <label className="form-label">Location Name <span className="required">*</span></label>
+              <input type="text" name="location" value={formData.location} onChange={handleChange}
+                placeholder="e.g. Vijay Nagar Square, Indore" required />
             </div>
 
             <div className="form-group">
-              <label>GPS Coordinates</label>
-              <div className="location-row">
-                <div className="coord-inputs">
-                  <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="Latitude"
-                    value={formData.latitude ?? ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, latitude: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  />
-                  <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="Longitude"
-                    value={formData.longitude ?? ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, longitude: e.target.value ? parseFloat(e.target.value) : undefined }))}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="btn-location"
-                  onClick={handleUseMyLocation}
-                  disabled={locationLoading}
-                >
-                  {locationLoading ? '⏳ Getting...' : '📍 Use My Location'}
+              <label className="form-label">GPS Coordinates</label>
+              <div className="gps-row">
+                <input type="number" step="0.0001" placeholder="Latitude"
+                  value={formData.latitude ?? ''}
+                  onChange={e => setFormData(p => ({ ...p, latitude: e.target.value ? parseFloat(e.target.value) : undefined }))} />
+                <input type="number" step="0.0001" placeholder="Longitude"
+                  value={formData.longitude ?? ''}
+                  onChange={e => setFormData(p => ({ ...p, longitude: e.target.value ? parseFloat(e.target.value) : undefined }))} />
+                <button type="button" className="btn-ghost gps-btn" onClick={handleUseMyLocation} disabled={locationLoading}>
+                  <MapPin size={14}/>
+                  {locationLoading ? 'Locating...' : 'Use My Location'}
                 </button>
               </div>
               {formData.latitude && formData.longitude && (
-                <span className="coords-badge">
-                  ✅ GPS: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+                <span className="pill pill-success" style={{ marginTop: 8, display: 'inline-flex' }}>
+                  <CheckCircle size={12}/> {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
                 </span>
               )}
             </div>
 
             <div className="form-group">
-              <label>Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe what's happening — vehicles involved, lanes blocked, etc."
-                rows={3}
-              />
+              <label className="form-label">Description</label>
+              <textarea name="description" value={formData.description} onChange={handleChange}
+                placeholder="Describe the incident — vehicles involved, lanes blocked, estimated clearance time..."
+                rows={3} />
             </div>
 
-            <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
-              {createMutation.isPending ? '⏳ Submitting...' : '🚨 Submit Report'}
-            </button>
+            <div className="form-actions">
+              <button type="button" className="btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
+              <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
+                {createMutation.isPending ? <><span className="spinner"/> Submitting...</> : <><CheckCircle size={15}/> Submit Report</>}
+              </button>
+            </div>
           </form>
         </div>
       )}
 
-      <div className="reports-list-container">
-        <h2>All Reports ({reports?.length || 0})</h2>
-        {isLoading && <div className="loading-state">Loading reports...</div>}
-        {!isLoading && reports?.length === 0 && (
+      {/* Reports List */}
+      <div className="reports-list">
+        {isLoading && (
+          <div className="empty-state"><div className="spinner" style={{ width: 32, height: 32 }}/><p>Loading reports...</p></div>
+        )}
+        {!isLoading && filtered?.length === 0 && (
           <div className="empty-state">
-            <p>No reports yet. Be the first to report a traffic incident!</p>
+            <div className="empty-state-icon"><FileText size={24}/></div>
+            <h3>No reports found</h3>
+            <p>Try adjusting your filters or submit a new incident report.</p>
           </div>
         )}
-        <div className="reports-table">
-          {reports?.map((report: any) => (
-            <div key={report.id} className={`report-row report-${report.severity}`}>
-              <div className="report-main">
-                <div className="report-badges">
-                  <span className={`badge badge-${report.type}`}>
-                    {getTypeIcon(report.type)} {report.type}
-                  </span>
-                  <span
-                    className="severity-badge"
-                    style={{ background: getSeverityColor(report.severity), color: 'white' }}
-                  >
-                    {report.severity}
-                  </span>
-                  <span className={`status-badge status-${report.status}`}>
-                    {getStatusIcon(report.status)} {report.status}
-                  </span>
+        {filtered?.map((report: any) => {
+          const Icon = TYPE_ICONS[report.type] || MapPin;
+          return (
+            <div key={report.id} className={`report-card card card-hover`} style={{ borderLeftColor: SEVERITY_COLORS[report.severity] }}>
+              <div className="report-card-left">
+                <div className="report-type-icon" style={{ background: `${SEVERITY_COLORS[report.severity]}18`, color: SEVERITY_COLORS[report.severity] }}>
+                  <Icon size={18}/>
                 </div>
-                <h3>{report.location}</h3>
-                {report.description && <p className="report-desc">{report.description}</p>}
-                {report.latitude && report.longitude && (
-                  <p className="report-coords">📍 {report.latitude.toFixed(4)}, {report.longitude.toFixed(4)}</p>
-                )}
-                <small className="report-time">🕐 {new Date(report.createdAt).toLocaleString()}</small>
               </div>
-              <div className="report-actions">
+              <div className="report-card-body">
+                <div className="report-card-badges">
+                  <span className={`pill ${SEVERITY_CLASSES[report.severity]}`}>{report.severity}</span>
+                  <span className={`pill ${STATUS_CLASSES[report.status]}`}>{report.status}</span>
+                  <span className="report-type-tag">{report.type}</span>
+                </div>
+                <h3 className="report-card-location">{report.location}</h3>
+                {report.description && <p className="report-card-desc">{report.description}</p>}
+                <div className="report-card-meta">
+                  {report.latitude && <span className="report-coord"><MapPin size={11}/> {report.latitude.toFixed(4)}, {report.longitude.toFixed(4)}</span>}
+                  <span className="report-time"><Clock size={11}/> {new Date(report.createdAt).toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="report-card-actions">
                 {report.status === 'pending' && (
                   <>
-                    <button
-                      className="btn-small btn-success"
-                      onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'verified' })}
-                    >
-                      ✓ Verify
+                    <button className="btn-success" onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'verified' })}>
+                      <CheckCheck size={13}/> Verify
                     </button>
-                    <button
-                      className="btn-small btn-danger"
-                      onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'false' })}
-                    >
-                      ✗ Reject
+                    <button className="btn-danger" onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'false' })}>
+                      <XCircle size={13}/> Reject
                     </button>
                   </>
                 )}
                 {report.status === 'verified' && (
-                  <button
-                    className="btn-small btn-success"
-                    onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'resolved' })}
-                  >
-                    ✓ Resolve
+                  <button className="btn-success" onClick={() => updateStatusMutation.mutate({ id: report.id, status: 'resolved' })}>
+                    <CheckCircle size={13}/> Resolve
                   </button>
                 )}
-                <button
-                  className="btn-small btn-delete"
-                  onClick={() => {
-                    if (confirm('Delete this report?')) {
-                      deleteMutation.mutate(report.id);
-                    }
-                  }}
-                >
-                  🗑️
+                <button className="btn-icon" style={{ color: 'var(--danger)', borderColor: 'var(--danger-border)' }}
+                  onClick={() => { if (confirm('Delete this report?')) deleteMutation.mutate(report.id); }}>
+                  <Trash2 size={14}/>
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
 }
+

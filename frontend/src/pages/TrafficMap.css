@@ -1,97 +1,156 @@
-.traffic-map {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.traffic-map h1 {
-  margin-bottom: 2rem;
-  color: #1a1a2e;
-}
-
-.map-placeholder {
-  background: white;
-  border-radius: 8px;
-  padding: 3rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
-.map-info h2 {
-  margin-top: 0;
-  color: #1a1a2e;
-}
-
-.map-info ul {
-  text-align: left;
-  max-width: 400px;
-  margin: 1rem auto;
-}
-
-.traffic-data {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.traffic-data h2 {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  color: #1a1a2e;
-}
-
-.snapshots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.snapshot-card {
+/* TrafficMap.css */
+.trafficmap-page {
   display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  transition: box-shadow 0.3s;
+  flex-direction: column;
+  gap: var(--sp-5);
+  height: calc(100vh - 60px - 48px);
+  max-height: 1000px;
 }
 
-.snapshot-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.congestion-indicator {
-  width: 8px;
-  border-radius: 4px;
+.trafficmap-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
   flex-shrink: 0;
 }
+.trafficmap-header-actions { display: flex; gap: var(--sp-3); }
 
-.snapshot-info {
-  flex: 1;
+/* Stats Bar */
+.trafficmap-stats-bar {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  flex-shrink: 0;
 }
-
-.snapshot-info h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  color: #1a1a2e;
+.trafficmap-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  transition: all var(--trans-fast);
 }
-
-.snapshot-info p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-  color: #666;
+.trafficmap-stat-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
-
-.congestion-level strong {
-  text-transform: capitalize;
-  color: #1a1a2e;
-}
-
-.traffic-speed {
+.trafficmap-stat-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   font-weight: 500;
 }
+.trafficmap-stat-value {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
 
-.timestamp {
-  font-size: 0.8rem !important;
-  color: #999 !important;
+/* Main layout */
+.trafficmap-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--sp-5);
+  flex: 1;
+  min-height: 0;
+}
+
+.trafficmap-sidebar {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.trafficmap-map-wrap {
+  padding: 0;
+  overflow: hidden;
+}
+.trafficmap-map-wrap > div { height: 100% !important; }
+
+/* Controls */
+.control-group { display: flex; flex-direction: column; gap: var(--sp-2); }
+.control-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mode-pills { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+
+.congestion-filters { display: flex; flex-direction: column; gap: var(--sp-1); }
+.congestion-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 7px var(--sp-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--trans-fast);
+  text-align: left;
+}
+.congestion-filter-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.congestion-filter-btn.active { font-weight: 600; }
+.cf-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* Speed Legend */
+.speed-legend { display: flex; flex-direction: column; gap: var(--sp-2); }
+.speed-gradient {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, #EF4444, #F97316, #EAB308, #22C55E);
+}
+.speed-legend-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* Snapshot Feed */
+.snapshot-feed { flex: 1; display: flex; flex-direction: column; gap: var(--sp-2); min-height: 0; }
+.snapshot-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: var(--sp-2); }
+.snapshot-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: 8px var(--sp-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  transition: background var(--trans-fast);
+}
+.snapshot-item:hover { background: var(--surface-3); }
+.snapshot-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.snapshot-body { flex: 1; min-width: 0; }
+.snapshot-location {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.snapshot-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 900px) {
+  .trafficmap-page { height: auto; max-height: none; }
+  .trafficmap-layout { grid-template-columns: 1fr; }
+  .trafficmap-map-wrap { height: 420px; }
 }

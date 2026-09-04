@@ -1,215 +1,242 @@
-/* Modern Traffic Management Theme */
+/* ============================================================
+   RoadSense Design System — theme.css
+   ============================================================ */
 :root {
-  /* Primary Colors - Traffic Theme */
-  --primary-dark: #0a1929;
-  --primary-blue: #1976d2;
-  --primary-light: #42a5f5;
-  --accent-cyan: #00bcd4;
-  --accent-green: #4caf50;
-  
-  /* Status Colors */
-  --success: #4caf50;
-  --warning: #ff9800;
-  --error: #f44336;
-  --info: #2196f3;
-  
-  /* Traffic Light Colors */
-  --traffic-green: #4caf50;
-  --traffic-yellow: #ffc107;
-  --traffic-red: #f44336;
-  
-  /* Neutral Colors */
-  --bg-primary: #0a1929;
-  --bg-secondary: #132f4c;
-  --bg-tertiary: #1e3a5f;
-  --surface: #1a2332;
-  --surface-hover: #243447;
-  
-  /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b0bec5;
-  --text-muted: #78909c;
-  
-  /* Border & Divider */
-  --border-color: rgba(255, 255, 255, 0.12);
-  --divider: rgba(255, 255, 255, 0.08);
-  
-  /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.5);
-  
-  /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  --gradient-success: linear-gradient(135deg, #4caf50 0%, #81c784 100%);
-  --gradient-warning: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
-  --gradient-error: linear-gradient(135deg, #f44336 0%, #e57373 100%);
-  
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  /* ── Brand Colors ── */
+  --rs-blue: #3B82F6;
+  --rs-blue-dark: #2563EB;
+  --rs-blue-light: #60A5FA;
+  --rs-blue-glow: rgba(59, 130, 246, 0.25);
+
+  /* ── Background Scale ── */
+  --bg-900: #070B14;
+  --bg-800: #0C1220;
+  --bg-700: #111827;
+  --bg-600: #1A2234;
+  --bg-500: #1E2A3B;
+  --bg-400: #243348;
+  --bg-300: #2D3F57;
+
+  /* ── Surface ── */
+  --surface-1: #131C2E;
+  --surface-2: #1A2640;
+  --surface-3: #223051;
+  --surface-hover: #263855;
+
+  /* ── Text ── */
+  --text-primary: #F0F4FF;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-accent: #3B82F6;
+
+  /* ── Status Colors ── */
+  --success: #10B981;
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-border: rgba(16, 185, 129, 0.3);
+
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.3);
+
+  --danger: #EF4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.3);
+
+  --info: #06B6D4;
+  --info-bg: rgba(6, 182, 212, 0.12);
+  --info-border: rgba(6, 182, 212, 0.3);
+
+  /* ── Traffic Light Colors ── */
+  --traffic-green: #22C55E;
+  --traffic-yellow: #EAB308;
+  --traffic-orange: #F97316;
+  --traffic-red: #EF4444;
+
+  /* ── Borders ── */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-active: rgba(59, 130, 246, 0.4);
+  --border-hover: rgba(255, 255, 255, 0.14);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);
+  --shadow-xl: 0 16px 64px rgba(0,0,0,0.7);
+  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.3);
+
+  /* ── Gradients ── */
+  --gradient-blue: linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%);
+  --gradient-green: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  --gradient-amber: linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%);
+  --gradient-red: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+  --gradient-card: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(6,182,212,0.04) 100%);
+
+  /* ── Sidebar ── */
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', 'Inter', sans-serif;
+
+  /* ── Font Sizes ── */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  /* ── Spacing ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* ── Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
-  
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Transitions ── */
+  --trans-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Animations */
+/* ── Keyframe Animations ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.9); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
 
-/* Utility Classes */
-.animate-fade-in {
-  animation: fadeIn var(--transition-base) ease-out;
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-slide-in-right {
-  animation: slideInRight var(--transition-base) ease-out;
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-.animate-slide-in-left {
-  animation: slideInLeft var(--transition-base) ease-out;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.animate-scale-in {
-  animation: scaleIn var(--transition-base) ease-out;
+@keyframes progressFill {
+  from { width: 0; }
+  to   { width: 100%; }
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+@keyframes rsGpsRadar {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.6); opacity: 0; }
 }
 
-/* Glass Morphism Effect */
+/* ── Utility Classes ── */
+.animate-fade-in-up    { animation: fadeInUp var(--trans-base) ease-out both; }
+.animate-fade-in       { animation: fadeIn var(--trans-base) ease-out both; }
+.animate-scale-in      { animation: scaleIn var(--trans-base) ease-out both; }
+.animate-slide-right   { animation: slideInRight var(--trans-base) ease-out both; }
+
 .glass {
-  background: rgba(26, 35, 50, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 38, 64, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
 }
 
-/* Hover Effects */
-.hover-lift {
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
 }
 
-.hover-lift:hover {
-  transform: translateY(-4px);
+.card-hover {
+  transition: transform var(--trans-base), box-shadow var(--trans-base), border-color var(--trans-base);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
 }
 
-.hover-glow {
-  transition: box-shadow var(--transition-base);
+/* Status Pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
+.pill-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+.pill-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+.pill-danger  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger-border);  }
+.pill-info    { background: var(--info-bg);    color: var(--info);    border: 1px solid var(--info-border);    }
+.pill-muted   { background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.2); }
 
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(25, 118, 210, 0.4);
-}
-
-/* Loading Skeleton */
+/* Loading skeleton */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--surface) 0%,
-    var(--surface-hover) 50%,
-    var(--surface) 100%
-  );
+  background: linear-gradient(90deg, var(--surface-1) 0%, var(--surface-3) 50%, var(--surface-1) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-800); }
+::-webkit-scrollbar-thumb { background: var(--bg-300); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--rs-blue); }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--surface-hover);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-blue);
-}
-
-/* Selection */
-::selection {
-  background: var(--primary-blue);
-  color: var(--text-primary);
-}
+::selection { background: var(--rs-blue); color: white; }

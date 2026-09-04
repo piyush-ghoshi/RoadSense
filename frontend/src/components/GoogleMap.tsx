@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 
+declare const window: any;
+
 interface GoogleMapProps {
   center?: { lat: number; lng: number };
   zoom?: number;
@@ -11,7 +13,7 @@ interface GoogleMapProps {
     severity?: string;
   }>;
   showTraffic?: boolean;
-  onMapLoad?: (map: google.maps.Map) => void;
+  onMapLoad?: (map: any) => void;
 }
 
 export default function GoogleMap({
@@ -22,9 +24,9 @@ export default function GoogleMap({
   onMapLoad
 }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<any>(null);
   const [error, setError] = useState<string>('');
-  const markersRef = useRef<google.maps.Marker[]>([]);
+  const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -40,60 +42,55 @@ export default function GoogleMap({
       libraries: ['places', 'geometry']
     });
 
-    loader
+    (loader as any)
       .load()
-      .then((google) => {
+      .then((gMaps: any) => {
         if (!mapRef.current) return;
 
-        const mapInstance = new google.maps.Map(mapRef.current, {
+        const googleObj = gMaps || window.google;
+        const mapInstance = new googleObj.maps.Map(mapRef.current, {
           center,
           zoom,
-          mapTypeControl: true,
-          streetViewControl: true,
-          fullscreenControl: true,
-          zoomControl: true,
+          styles: [
+            {
+              featureType: 'all',
+              elementType: 'geometry',
+              stylers: [{ color: '#242f3e' }]
+            }
+          ]
         });
 
-        // Add traffic layer if enabled
         if (showTraffic) {
-          const trafficLayer = new google.maps.TrafficLayer();
+          const trafficLayer = new googleObj.maps.TrafficLayer();
           trafficLayer.setMap(mapInstance);
         }
 
         setMap(mapInstance);
         if (onMapLoad) onMapLoad(mapInstance);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error('Error loading Google Maps:', err);
-        setError('Failed to load Google Maps. Please check your API key and internet connection.');
+        setError('Failed to load Google Maps. Please check your API key.');
       });
-  }, [center.lat, center.lng, zoom, showTraffic, onMapLoad]);
+  }, []);
 
-  // Update markers
   useEffect(() => {
-    if (!map) return;
+    if (!map || !window.google) return;
 
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
-    // Add new markers
+    const bounds = new window.google.maps.LatLngBounds();
+
     markers.forEach(markerData => {
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: markerData.position,
         map,
         title: markerData.title,
-        icon: getMarkerIcon(markerData.type, markerData.severity)
       });
 
-      const infoWindow = new google.maps.InfoWindow({
-        content: `
-          <div style="padding: 10px;">
-            <h3 style="margin: 0 0 10px 0;">${markerData.title}</h3>
-            ${markerData.type ? `<p style="margin: 5px 0;"><strong>Type:</strong> ${markerData.type}</p>` : ''}
-            ${markerData.severity ? `<p style="margin: 5px 0;"><strong>Severity:</strong> ${markerData.severity}</p>` : ''}
-          </div>
-        `
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `<div><h4>${markerData.title}</h4></div>`
       });
 
       marker.addListener('click', () => {
@@ -101,63 +98,18 @@ export default function GoogleMap({
       });
 
       markersRef.current.push(marker);
+      bounds.extend(markerData.position);
     });
-  }, [map, markers]);
 
-  const getMarkerIcon = (type?: string, severity?: string) => {
-    let color = '#4285F4'; // Default blue
-
-    if (severity) {
-      switch (severity) {
-        case 'critical':
-        case 'severe':
-          color = '#EA4335'; // Red
-          break;
-        case 'high':
-        case 'heavy':
-          color = '#FF9800'; // Orange
-          break;
-        case 'medium':
-        case 'moderate':
-          color = '#FBBC04'; // Yellow
-          break;
-        case 'low':
-        case 'light':
-          color = '#34A853'; // Green
-          break;
-      }
+    if (markers.length > 0) {
+      map.fitBounds(bounds);
     }
-
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: color,
-      fillOpacity: 0.8,
-      strokeColor: '#ffffff',
-      strokeWeight: 2,
-    };
-  };
+  }, [map, markers]);
 
   if (error) {
     return (
-      <div style={{
-        padding: '40px',
-        background: '#fff3cd',
-        border: '1px solid #ffc107',
-        borderRadius: '8px',
-        textAlign: 'center'
-      }}>
-        <h3 style={{ color: '#856404', marginTop: 0 }}>⚠️ Google Maps Not Configured</h3>
-        <p style={{ color: '#856404' }}>{error}</p>
-        <div style={{ marginTop: '20px', textAlign: 'left', maxWidth: '600px', margin: '20px auto' }}>
-          <h4>To enable Google Maps:</h4>
-          <ol>
-            <li>Get an API key from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
-            <li>Enable Maps JavaScript API, Directions API, and Places API</li>
-            <li>Add to <code>frontend/.env</code>: <code>VITE_GOOGLE_MAPS_API_KEY=your_key_here</code></li>
-            <li>Restart the frontend server</li>
-          </ol>
-        </div>
+      <div style={{ padding: '20px', background: 'var(--surface-2)', borderRadius: '8px', color: 'var(--text-muted)' }}>
+        <p>{error}</p>
       </div>
     );
   }
@@ -165,12 +117,7 @@ export default function GoogleMap({
   return (
     <div
       ref={mapRef}
-      style={{
-        width: '100%',
-        height: '600px',
-        borderRadius: '8px',
-        overflow: 'hidden'
-      }}
+      style={{ width: '100%', height: '600px', borderRadius: '8px', overflow: 'hidden' }}
     />
   );
 }

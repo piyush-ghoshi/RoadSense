@@ -1,167 +1,131 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { RefreshCw, Flame, Activity } from 'lucide-react';
 import { congestionApi } from '../lib/api';
 import { getSocket } from '../lib/socket';
 import OSMMap from '../components/OSMMap';
 import './Heatmap.css';
 
-interface HeatmapPoint {
-  lat: number;
-  lng: number;
-  intensity: number;
-  location: string;
-  speed?: number;
-  timestamp: string;
-}
+interface HeatmapPoint { lat: number; lng: number; intensity: number; location: string; speed?: number; timestamp: string; }
+
+const getIntensity = (level: string) => ({ severe: 1.0, heavy: 0.75, moderate: 0.5, light: 0.25 }[level] ?? 0.1);
+
+const TIME_RANGES = [
+  { value: '15',  label: '15m' },
+  { value: '30',  label: '30m' },
+  { value: '60',  label: '1h' },
+  { value: '120', label: '2h' },
+  { value: '360', label: '6h' },
+];
 
 export default function Heatmap() {
   const [timeRange, setTimeRange] = useState('60');
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  const { data, refetch } = useQuery({
+  const { data, refetch, isFetching } = useQuery({
     queryKey: ['heatmap', timeRange],
-    queryFn: async () => {
-      const res = await congestionApi.getHeatmap({ timeRange });
-      return res.data.data;
-    },
+    queryFn: async () => { const res = await congestionApi.getHeatmap({ timeRange }); return res.data.data; },
     refetchInterval: 30000
   });
 
-  useEffect(() => {
-    if (data) {
-      setHeatmapData(data);
-    }
-  }, [data]);
+  useEffect(() => { if (data) { setHeatmapData(data); setLastUpdated(new Date()); } }, [data]);
 
   useEffect(() => {
     const socket = getSocket();
-
     socket.on('traffic:update', (snapshot: any) => {
-      const newPoint: HeatmapPoint = {
-        lat: snapshot.latitude,
-        lng: snapshot.longitude,
-        intensity: getIntensityFromLevel(snapshot.congestionLevel),
-        location: snapshot.location,
-        speed: snapshot.trafficSpeed,
-        timestamp: snapshot.timestamp
-      };
-      
-      setHeatmapData(prev => [newPoint, ...prev].slice(0, 100));
+      setHeatmapData(prev => [{
+        lat: snapshot.latitude, lng: snapshot.longitude,
+        intensity: getIntensity(snapshot.congestionLevel),
+        location: snapshot.location, speed: snapshot.trafficSpeed, timestamp: snapshot.timestamp
+      }, ...prev].slice(0, 100));
+      setLastUpdated(new Date());
     });
-
-    return () => {
-      socket.off('traffic:update');
-    };
+    return () => { socket.off('traffic:update'); };
   }, []);
 
-  const getIntensityFromLevel = (level: string): number => {
-    switch (level) {
-      case 'severe': return 1.0;
-      case 'heavy': return 0.75;
-      case 'moderate': return 0.5;
-      case 'light': return 0.25;
-      default: return 0.1;
-    }
-  };
-
-  const markers = heatmapData.map(point => ({
-    position: { lat: point.lat, lng: point.lng },
-    title: point.location,
-    type: 'Traffic',
-    severity: point.intensity >= 0.75 ? 'severe' : point.intensity >= 0.5 ? 'heavy' : point.intensity >= 0.25 ? 'moderate' : 'light',
-    speed: point.speed
+  const markers = heatmapData.map(p => ({
+    position: { lat: p.lat, lng: p.lng },
+    title: p.location, type: 'Traffic',
+    severity: p.intensity >= 0.75 ? 'severe' : p.intensity >= 0.5 ? 'heavy' : p.intensity >= 0.25 ? 'moderate' : 'light',
+    speed: p.speed
   }));
 
-  // Determine map center from data or default to Indore
-  const mapCenter = heatmapData.length > 0
-    ? { lat: heatmapData[0].lat, lng: heatmapData[0].lng }
-    : { lat: 22.7196, lng: 75.8577 };
+  const mapCenter = heatmapData.length > 0 ? { lat: heatmapData[0].lat, lng: heatmapData[0].lng } : { lat: 22.7196, lng: 75.8577 };
+
+  const stats = {
+    total:    heatmapData.length,
+    severe:   heatmapData.filter(p => p.intensity >= 0.75).length,
+    heavy:    heatmapData.filter(p => p.intensity >= 0.5 && p.intensity < 0.75).length,
+    moderate: heatmapData.filter(p => p.intensity >= 0.25 && p.intensity < 0.5).length,
+    avgSpeed: heatmapData.length > 0
+      ? (heatmapData.reduce((s, p) => s + (p.speed || 0), 0) / heatmapData.length).toFixed(1)
+      : '0',
+  };
 
   return (
-    <div className="heatmap-page">
+    <div className="heatmap-page animate-fade-in-up">
+      {/* Header */}
       <div className="heatmap-header">
-        <h1>🔥 Traffic Heatmap Visualization</h1>
+        <div>
+          <h1 className="page-title">Traffic Heatmap</h1>
+          <p className="page-subtitle">Congestion visualization · Last updated {lastUpdated.toLocaleTimeString()}</p>
+        </div>
         <div className="heatmap-controls">
-          <label>
-            Visualization:
-            <select value={showHeatmap ? 'heatmap' : 'markers'} onChange={(e) => setShowHeatmap(e.target.value === 'heatmap')}>
-              <option value="markers">Markers Only</option>
-              <option value="heatmap">Heatmap + Markers</option>
-            </select>
-          </label>
-          <label>
-            Time Range:
-            <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-              <option value="15">Last 15 minutes</option>
-              <option value="30">Last 30 minutes</option>
-              <option value="60">Last hour</option>
-              <option value="120">Last 2 hours</option>
-              <option value="360">Last 6 hours</option>
-            </select>
-          </label>
-          <button onClick={() => refetch()} className="btn-refresh">
-            🔄 Refresh
+          {/* Time range segmented control */}
+          <div className="time-range-group">
+            {TIME_RANGES.map(t => (
+              <button key={t.value} className={`time-range-btn ${timeRange === t.value ? 'active' : ''}`} onClick={() => setTimeRange(t.value)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {/* Viz toggle */}
+          <div className="viz-toggle-group">
+            <button className={`viz-toggle-btn ${showHeatmap ? 'active' : ''}`} onClick={() => setShowHeatmap(true)}>
+              <Flame size={13}/> Heatmap
+            </button>
+            <button className={`viz-toggle-btn ${!showHeatmap ? 'active' : ''}`} onClick={() => setShowHeatmap(false)}>
+              <Activity size={13}/> Markers
+            </button>
+          </div>
+          <button className="btn-ghost" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw size={14} className={isFetching ? 'spin-anim' : ''}/> {isFetching ? 'Loading...' : 'Refresh'}
           </button>
         </div>
       </div>
 
-      <div className="heatmap-legend">
-        <h3>Congestion Levels</h3>
-        <div className="legend-items">
-          <div className="legend-item">
-            <span className="legend-color" style={{ background: '#4caf50' }}></span>
-            <span>Light (0–25%)</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-color" style={{ background: '#ffc107' }}></span>
-            <span>Moderate (25–50%)</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-color" style={{ background: '#ff9800' }}></span>
-            <span>Heavy (50–75%)</span>
-          </div>
-          <div className="legend-item">
-            <span className="legend-color" style={{ background: '#f44336' }}></span>
-            <span>Severe (75–100%)</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="map-container-wrapper">
-        <OSMMap
-          center={mapCenter}
-          zoom={12}
-          markers={markers}
-          showClustering={false}
-          showHeatmap={showHeatmap}
-        />
-      </div>
-
+      {/* Stats Cards */}
       <div className="heatmap-stats">
-        <div className="stat-box">
-          <h3>Total Points</h3>
-          <p className="stat-value">{heatmapData.length}</p>
+        {[
+          { label: 'Total Points', value: stats.total,    color: 'var(--rs-blue)', bg: 'rgba(59,130,246,0.12)' },
+          { label: 'Severe',       value: stats.severe,   color: 'var(--traffic-red)',    bg: 'rgba(239,68,68,0.12)' },
+          { label: 'Heavy',        value: stats.heavy,    color: 'var(--traffic-orange)', bg: 'rgba(249,115,22,0.12)' },
+          { label: 'Avg Speed',    value: `${stats.avgSpeed} km/h`, color: 'var(--success)', bg: 'rgba(16,185,129,0.12)' },
+        ].map((s, i) => (
+          <div key={i} className="heatmap-stat-card kpi-card">
+            <div className="kpi-card-value" style={{ fontSize: 'var(--text-2xl)', color: s.color }}>{s.value}</div>
+            <div className="kpi-card-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Map */}
+      <div className="card heatmap-map-card">
+        {/* Gradient Legend */}
+        <div className="heatmap-legend-bar">
+          <span className="legend-label">Low</span>
+          <div className="legend-gradient"/>
+          <span className="legend-label">High</span>
+          <div className="legend-levels">
+            {['Light', 'Moderate', 'Heavy', 'Severe'].map((l, i) => (
+              <span key={i} className="legend-level-dot" style={{ color: ['#22C55E','#EAB308','#F97316','#EF4444'][i] }}>{l}</span>
+            ))}
+          </div>
         </div>
-        <div className="stat-box">
-          <h3>Severe Areas</h3>
-          <p className="stat-value severe">
-            {heatmapData.filter(p => p.intensity >= 0.75).length}
-          </p>
-        </div>
-        <div className="stat-box">
-          <h3>Heavy Traffic</h3>
-          <p className="stat-value heavy">
-            {heatmapData.filter(p => p.intensity >= 0.5 && p.intensity < 0.75).length}
-          </p>
-        </div>
-        <div className="stat-box">
-          <h3>Avg Speed</h3>
-          <p className="stat-value">
-            {heatmapData.length > 0
-              ? (heatmapData.reduce((sum, p) => sum + (p.speed || 0), 0) / heatmapData.length).toFixed(1)
-              : 0} km/h
-          </p>
+        <div className="heatmap-map-embed">
+          <OSMMap center={mapCenter} zoom={12} markers={markers} showClustering={false} showHeatmap={showHeatmap} />
         </div>
       </div>
     </div>
