@@ -4,6 +4,7 @@
   "private": true,
   "description": "Smart Traffic Management System monorepo",
   "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
     "dev": "npm run dev:frontend",
