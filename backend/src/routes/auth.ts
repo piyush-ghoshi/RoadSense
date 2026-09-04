@@ -2,6 +2,10 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
+// Declare module for type safety when optional
+// @ts-ignore
+declare module 'nodemailer';
+
 // In-memory storage for OTPs (in production, use Redis or database)
 const otpStorage = new Map<string, { code: string; expiresAt: number; attempts: number }>();
 
@@ -11,9 +15,15 @@ let nodemailer: any = null;
 async function initNodemailer() {
   if (!nodemailer) {
     try {
+      // @ts-ignore
       nodemailer = await import('nodemailer');
-    } catch (e) {
-      console.warn('⚠️  nodemailer not available');
+    } catch {
+      try {
+        const req = eval('require');
+        nodemailer = req('nodemailer');
+      } catch {
+        console.warn('⚠️  nodemailer not available, using dev OTP fallback');
+      }
     }
   }
   return nodemailer;
